@@ -4,6 +4,7 @@ defmodule ElixirAndrew.Accounts.User do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "users" do
+    field :username, :string
     field :email, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
@@ -43,18 +44,40 @@ defmodule ElixirAndrew.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password])
-    |> validate_email(opts)
+    |> cast(attrs, [:username, :password])
+    |> validate_username(opts)
     |> validate_password(opts)
   end
 
-  defp validate_email(changeset, opts) do
+  defp validate_username(changeset, _opts) do
     changeset
-    |> validate_required([:email])
-    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
-    |> validate_length(:email, max: 160)
-    |> maybe_validate_unique_email(opts)
+    |> validate_required([:username])
+    |> validate_format(:username, ~r/^[a-zA-Z0-9_]+$/, message: "can only contain letters, numbers, and underscores")
+    |> validate_length(:username, min: 3, max: 20)
+    |> unsafe_validate_unique(:username, ElixirAndrew.Repo)
+    |> unique_constraint(:username)
   end
+
+  defp validate_optional_email(changeset) do
+    email = get_field(changeset, :email)
+   
+    if email do
+      changeset
+      |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
+      |> validate_length(:email, max: 160)
+  
+    else 
+      changeset
+    end
+  end
+
+  # defp validate_email(changeset, opts) do
+  #   changeset
+  #   |> validate_required([:email])
+  #   |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
+  #   |> validate_length(:email, max: 160)
+  #   |> maybe_validate_unique_email(opts)
+  # end
 
   defp validate_password(changeset, opts) do
     changeset
@@ -84,25 +107,16 @@ defmodule ElixirAndrew.Accounts.User do
     end
   end
 
-  defp maybe_validate_unique_email(changeset, opts) do
-    if Keyword.get(opts, :validate_email, true) do
-      changeset
-      |> unsafe_validate_unique(:email, ElixirAndrew.Repo)
-      |> unique_constraint(:email)
-    else
-      changeset
-    end
-  end
 
   @doc """
   A user changeset for changing the email.
 
   It requires the email to change otherwise an error is added.
   """
-  def email_changeset(user, attrs, opts \\ []) do
+  def email_changeset(user, attrs, _opts \\ []) do
     user
     |> cast(attrs, [:email])
-    |> validate_email(opts)
+    |> validate_optional_email()
     |> case do
       %{changes: %{email: _}} = changeset -> changeset
       %{} = changeset -> add_error(changeset, :email, "did not change")
