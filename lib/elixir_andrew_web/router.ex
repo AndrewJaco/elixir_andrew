@@ -52,7 +52,6 @@ defmodule ElixirAndrewWeb.Router do
 
     live_session :redirect_if_user_is_authenticated,
       on_mount: [{ElixirAndrewWeb.UserAuth, :redirect_if_user_is_authenticated}] do
-      live "/users/register", UserRegistrationLive, :new
       live "/users/log_in", UserLoginLive, :new
       live "/users/reset_password", UserForgotPasswordLive, :new
       live "/users/reset_password/:token", UserResetPasswordLive, :edit
@@ -66,6 +65,7 @@ defmodule ElixirAndrewWeb.Router do
 
     live_session :require_authenticated_user,
       on_mount: [{ElixirAndrewWeb.UserAuth, :ensure_authenticated}] do
+      live "/users/register", UserRegistrationLive, :new
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
     end
