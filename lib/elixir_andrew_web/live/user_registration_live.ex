@@ -45,7 +45,7 @@ defmodule ElixirAndrewWeb.UserRegistrationLive do
 
   def handle_event("save", %{"user" => user_params}, socket) do
     case Accounts.register_user(user_params) do
-      {:ok, user} ->
+      {:ok, _user} ->
         changeset = Accounts.change_user_registration(%User{})
         {:noreply, socket |> put_flash(:info, "User Created.") |> assign_form(changeset)}
 
