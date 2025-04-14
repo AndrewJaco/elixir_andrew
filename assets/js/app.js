@@ -18,18 +18,42 @@
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
-import {Socket} from "phoenix"
-import {LiveSocket} from "phoenix_live_view"
-import topbar from "../vendor/topbar"
+import { Socket } from "phoenix"
+import { LiveSocket } from "phoenix_live_view"
+import topbar, { hide } from "../vendor/topbar"
+
+let Hooks = {}
+
+Hooks.AutoClearFlash = {
+  mounted() {
+    let ignoredIDs = ["client-error", "server-error"]
+    if (ignoredIDs.includes(this.el.id)) return;
+
+    let hideElementAfter = 2000;
+    let clearFlashAfter = hideElementAfter + 500;
+
+    //first hide the element
+    setTimeout(() => {
+      this.el.style.opacity = 0;
+    }, hideElementAfter)
+
+    //the clear the flash
+    setTimeout(() => {
+      this.pushEvent("lv:clear-flash")
+    }, clearFlashAfter)
+  }
+}
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
+  params: { _csrf_token: csrfToken },
+  hooks: Hooks
 })
 
+
 // Show progress bar on live navigation and form submits
-topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
+topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" })
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 
