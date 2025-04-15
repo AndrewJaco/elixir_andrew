@@ -1,12 +1,10 @@
-defmodule ElixirAndrew.Progresses.Progress do
+defmodule ElixirAndrew.Progress.UserProgress do
   use Ecto.Schema
   import Ecto.Changeset
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
-  schema "progresses" do
-    belongs_to :user, ElixirAndrew.Accounts.User
-
+  schema "user_progress" do
     field :unit, :integer
     field :level, :string
     field :book, :string
@@ -19,9 +17,9 @@ defmodule ElixirAndrew.Progresses.Progress do
   end
 
   @doc false
-  def changeset(progress, attrs) do
-    progress
-    |> cast(attrs, [:level, :book, :unit, :reading_question_index, :game, :prev_tutor, :sleeping_tutor])
-    |> validate_required([:level, :book, :unit, :reading_question_index])
+  def changeset(user_progress, attrs) do
+    user_progress
+    |> cast(attrs, [:unit, :level, :book, :reading_question_index, :game, :prev_tutor, :sleeping_tutor])
+    |> validate_required([:unit, :level, :book])
   end
 end

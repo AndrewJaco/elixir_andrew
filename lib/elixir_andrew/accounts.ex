@@ -349,5 +349,5 @@ defmodule ElixirAndrew.Accounts do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
     end
-  end
+  end  
 end

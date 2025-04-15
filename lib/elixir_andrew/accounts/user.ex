@@ -14,7 +14,7 @@ defmodule ElixirAndrew.Accounts.User do
     field :last_name, :string
     field :age, :integer
     field :role, :string, default: "user"
-    has_many :progresses, ElixirAndrew.Progresses.Progress
+    has_one :user_progress, ElixirAndrew.Progress.UserProgress
 
     timestamps(type: :utc_datetime)
   end

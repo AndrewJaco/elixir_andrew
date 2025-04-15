@@ -1,14 +1,14 @@
-defmodule ElixirAndrew.ProgressesFixtures do
+defmodule ElixirAndrew.ProgressFixtures do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `ElixirAndrew.Progresses` context.
+  entities via the `ElixirAndrew.Progress` context.
   """
 
   @doc """
-  Generate a progress.
+  Generate a user_progress.
   """
-  def progress_fixture(attrs \\ %{}) do
-    {:ok, progress} =
+  def user_progress_fixture(attrs \\ %{}) do
+    {:ok, user_progress} =
       attrs
       |> Enum.into(%{
         book: "some book",
@@ -19,8 +19,8 @@ defmodule ElixirAndrew.ProgressesFixtures do
         sleeping_tutor: 42,
         unit: 42
       })
-      |> ElixirAndrew.Progresses.create_progress()
+      |> ElixirAndrew.Progress.create_user_progress()
 
-    progress
+    user_progress
   end
 end
