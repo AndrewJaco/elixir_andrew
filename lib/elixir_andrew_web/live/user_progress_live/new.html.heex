@@ -1,0 +1,19 @@
+<div class="mx-auto max-w-sm">
+  <.header class="text-center">
+    Enter student progress details for <%= @user.username %>:
+  </.header>
+
+  <.form
+    for={@form}
+    id="new_user_progress_form"
+    phx-submit="save"
+    phx-change="validate"
+  >
+    <.input field={@form[:level]} type="text" label="Level" required />
+    <.input field={@form[:book]} type="text" label="Book" required />
+    <.input field={@form[:unit]} type="number" label="Unit" required />
+    <.input field={@form[:user_id]} type="hidden" value={@user.id} />
+
+    <.button phx-disable-with="Creating progress..." class="w-full">Create progress</.button>
+  </.form>
+</div>

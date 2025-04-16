@@ -66,6 +66,7 @@ defmodule ElixirAndrewWeb.Router do
     live_session :require_authenticated_user,
       on_mount: [{ElixirAndrewWeb.UserAuth, :ensure_authenticated}] do
       live "/dashboard", DashboardLive
+      live "/users/:user_id/progress/new", UserProgressLive.New, :new
       live "/users/register", UserRegistrationLive, :new
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email

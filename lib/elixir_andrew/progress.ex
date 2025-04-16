@@ -49,8 +49,8 @@ defmodule ElixirAndrew.Progress do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_user_progress(user, attrs \\ %{}) do
-    user
+  def create_user_progress(attrs \\ %{}) do
+    %UserProgress{}
     |> UserProgress.changeset(attrs)
     |> Repo.insert()
   end
