@@ -52,7 +52,7 @@ defmodule ElixirAndrewWeb.UserRegistrationLive do
           socket 
           |> put_flash(:info, "User Created.") 
           |> assign_form(changeset) 
-          |> push_redirect(to: ~p"/users/#{user.id}/progress/new")}
+          |> push_navigate(to: ~p"/users/#{user.id}/progress/new")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, socket |> assign(check_errors: true) |> assign_form(changeset)}

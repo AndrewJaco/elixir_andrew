@@ -94,7 +94,25 @@ defmodule ElixirAndrew.Accounts do
   end
 
   ## Settings
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user name."
+  
+  ## Examples
 
+      iex> change_user_name(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_name(user, attrs \\ %{}) do
+    User.name_changeset(user, attrs)
+  end
+
+  def update_user_name(user, attrs) do
+    user
+    |> User.name_changeset(attrs)
+    |> Repo.update()
+  end
+  
   @doc """
   Returns an `%Ecto.Changeset{}` for changing the user email.
 

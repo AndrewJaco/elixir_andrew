@@ -107,6 +107,17 @@ defmodule ElixirAndrew.Accounts.User do
     end
   end
 
+  @doc """
+  A user changeset for updating the profile.
+  It doesn't require the last name to be present.
+  """
+  def name_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:first_name, :last_name])
+    |> validate_required([:first_name])
+    |> validate_length(:first_name, min: 2, max: 20)
+    |> validate_length(:last_name, min: 2, max: 20)   
+  end
 
   @doc """
   A user changeset for changing the email.

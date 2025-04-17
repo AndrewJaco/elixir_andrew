@@ -6,8 +6,8 @@ defmodule ElixirAndrewWeb.UserSettingsLive do
   def render(assigns) do
     ~H"""
     <.header class="text-center">
-      Account Settings
-      <:subtitle>Manage your account email address and password settings</:subtitle>
+      Profile Settings
+      <:subtitle>Manage your profile</:subtitle>
     </.header>
 
     <div class="space-y-12 divide-y">
@@ -30,6 +30,28 @@ defmodule ElixirAndrewWeb.UserSettingsLive do
           />
           <:actions>
             <.button phx-disable-with="Changing...">Change Email</.button>
+          </:actions>
+        </.simple_form>
+      </div>
+      <div> 
+        <.simple_form
+          for={@name_form}
+          id="name_form"
+          phx-submit="update_name"
+          phx-change="validate_name"
+        >
+          <.input 
+            field={@name_form[:first_name]} 
+            type="text" 
+            label="First Name"
+            value={@current_first_name} />
+          <.input 
+            field={@name_form[:last_name]} 
+            type="text" 
+            label="Last Name" 
+            value={@current_last_name} />
+          <:actions>
+            <.button phx-disable-with="Changing...">Change Name</.button>
           </:actions>
         </.simple_form>
       </div>
@@ -90,6 +112,7 @@ defmodule ElixirAndrewWeb.UserSettingsLive do
     user = socket.assigns.current_user
     email_changeset = Accounts.change_user_email(user)
     password_changeset = Accounts.change_user_password(user)
+    name_changeset = Accounts.change_user_name(user)
 
     socket =
       socket
@@ -97,6 +120,9 @@ defmodule ElixirAndrewWeb.UserSettingsLive do
       |> assign(:email_form_current_password, nil)
       |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
+      |> assign(:name_form, to_form(name_changeset))
+      |> assign(:current_first_name, user.first_name)
+      |> assign(:current_last_name, user.last_name)
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)
 
@@ -163,5 +189,48 @@ defmodule ElixirAndrewWeb.UserSettingsLive do
       {:error, changeset} ->
         {:noreply, assign(socket, password_form: to_form(changeset))}
     end
+  end
+
+  def handle_event("update_name", params, socket) do
+    %{"user" => user_params} = params
+    user = socket.assigns.current_user
+
+    case Accounts.update_user_name(user, user_params) do
+      {:ok, updated_user} ->
+        name_form =
+          updated_user
+          |> Accounts.change_user_name(user_params)
+          |> to_form()
+
+        {:noreply, 
+          socket
+          |> put_flash(:info, "Name updated successfully.")
+          |> assign(
+            name_form: name_form,
+            current_first_name: updated_user.first_name,
+            current_last_name: updated_user.last_name
+          )}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, name_form: to_form(changeset))}
+    end
+  end
+
+  def handle_event("validate_name", %{"user" => user_params}, socket) do
+    name_changeset = 
+      socket.assigns.current_user
+      |> Accounts.change_user_name(user_params)
+      |> validate_name_format()
+      |> Map.put(:action, :validate)
+      |> to_form()
+    {:noreply, assign(socket, name_form: name_changeset)}
+  end
+
+  defp validate_name_format(changeset) do
+    changeset
+    |> Ecto.Changeset.validate_length(:first_name, min: 1, max: 20)
+    |> Ecto.Changeset.validate_length(:last_name, max: 20)
+    |> Ecto.Changeset.validate_format(:first_name, ~r/^[a-zA-Z]+$/, message: "only letters allowed")
+    |> Ecto.Changeset.validate_format(:last_name, ~r/^[a-zA-Z]+$/, message: "only letters allowed")
   end
 end

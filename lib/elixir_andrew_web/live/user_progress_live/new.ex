@@ -39,10 +39,10 @@ defmodule ElixirAndrewWeb.UserProgressLive.New do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, changeset: changeset)}
     end
-  end`
+  end
 
   defp update_user_progress(user_progress_params, socket) do
-    case Progress.update_user_progress(user_progress_params) do
+    case Progress.update_user_progress(socket.assigns.user, user_progress_params) do
       {:ok, _user_progress} ->
         {:noreply, socket |> put_flash(:info, "User progress updated successfully.") |> push_navigate(to: ~p"/")}
 
