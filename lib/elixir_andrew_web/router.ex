@@ -20,7 +20,8 @@ defmodule ElixirAndrewWeb.Router do
   scope "/", ElixirAndrewWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", HomeLive, :index
+    # get "/", PageController, :home
   end
 
   # Other scopes may use custom stacks.
