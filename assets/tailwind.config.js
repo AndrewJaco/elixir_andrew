@@ -14,7 +14,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: "#FD4F00",
+        primary: 'var(--color-primary)',
+        secondary: 'var(--color-secondary)',
+        light: 'var(--color-light)',
+        dark: 'var(--color-dark)',
+        accent: 'var(--color-accent)'
       }
     },
   },

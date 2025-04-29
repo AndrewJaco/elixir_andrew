@@ -20,8 +20,9 @@ defmodule ElixirAndrewWeb.Router do
   scope "/", ElixirAndrewWeb do
     pipe_through :browser
 
-    live "/", HomeLive, :index
-    # get "/", PageController, :home
+    live_session :themed_public, on_mount: [{ElixirAndrewWeb.UserAuth, :mount_current_user}, {ElixirAndrewWeb.ThemeHook, :set_theme}] do
+      live "/", HomeLive, :index
+    end
   end
 
   # Other scopes may use custom stacks.
@@ -52,7 +53,7 @@ defmodule ElixirAndrewWeb.Router do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
 
     live_session :redirect_if_user_is_authenticated,
-      on_mount: [{ElixirAndrewWeb.UserAuth, :redirect_if_user_is_authenticated}] do
+      on_mount: [{ElixirAndrewWeb.UserAuth, :redirect_if_user_is_authenticated}, {ElixirAndrewWeb.ThemeHook, :set_theme}] do
       live "/users/log_in", UserLoginLive, :new
       live "/users/reset_password", UserForgotPasswordLive, :new
       live "/users/reset_password/:token", UserResetPasswordLive, :edit
@@ -65,7 +66,7 @@ defmodule ElixirAndrewWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
-      on_mount: [{ElixirAndrewWeb.UserAuth, :ensure_authenticated}] do
+      on_mount: [{ElixirAndrewWeb.UserAuth, :ensure_authenticated}, {ElixirAndrewWeb.ThemeHook, :set_theme}] do
       live "/dashboard", DashboardLive
       live "/users/:user_id/progress/new", UserProgressLive.New, :new
       live "/users/register", UserRegistrationLive, :new
@@ -80,7 +81,7 @@ defmodule ElixirAndrewWeb.Router do
     delete "/users/log_out", UserSessionController, :delete
 
     live_session :current_user,
-      on_mount: [{ElixirAndrewWeb.UserAuth, :mount_current_user}] do
+      on_mount: [{ElixirAndrewWeb.UserAuth, :mount_current_user}, {ElixirAndrewWeb.ThemeHook, :set_theme}] do
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new
     end

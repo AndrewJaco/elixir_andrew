@@ -11,30 +11,10 @@ defmodule ElixirAndrewWeb.HomeLive do
     
     {:ok, assign(socket, current_user: current_user)}
   end
-  
-  def render(assigns) do
-    ~H"""
-    <.header class="text-center">
-      <%= if @current_user do %>
-        <div class="flex flex-col items-center">
-          <h2>Welcome back, <%= @current_user.first_name %>!</h2>
-          <.link navigate={~p"/dashboard"} class="btn">Go to Dashboard</.link>
-          <.link 
-            href={~p"/users/log_out"}
-            method="delete"
-            class="btn">
-            Log Out
-          </.link>
-        </div>
-      <% else %>
-        <div class="flex flex-col items-center">
-        <h2>Welcome</h2>
 
-          <.link navigate={~p"/users/log_in"} class="btn">Log In</.link>
-          <.link navigate={~p"/"} class="btn">Continue as Guest</.link>
-        </div>
-      <% end %>
-    </.header>
-    """
+  def handle_info({:theme_changed, theme}, socket) do
+    # Handle the theme change event here
+    # For example, you might want to store the theme in the session or database
+    {:noreply, assign(socket, theme: theme)}
   end
 end

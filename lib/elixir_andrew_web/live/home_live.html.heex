@@ -1,0 +1,26 @@
+<div class={"flex flex-col flex-1 h-full"}>
+  <pre class="text-xs">Applied class: <%= "#{@theme} flex flex-col flex-1 h-full" %></pre>
+  <%= if @current_user do %>
+    <div class="flex flex-col items-center">
+      <h2>Welcome back, <%= @current_user.first_name %>!</h2>
+      <.link navigate={~p"/dashboard"} class="btn">Go to Dashboard</.link>
+      <.link 
+        href={~p"/users/log_out"}
+        method="delete"
+        class="btn">
+        Log Out
+      </.link>
+    </div>
+  <% else %>
+  <div class="flex flex-col flex-1">
+      <div class="flex justify-center my-10">
+        <pre class="text-xs text-gray-500">Theme: <%= inspect(@theme) %></pre>
+        <h1 class="text-primary text-[50px] font-bold">Teacher Andrew's Class</h1>
+      </div>
+    <div class="flex flex-1 gap-[200px] justify-center items-center">
+      <.link navigate={~p"/users/log_in"} class="login-btn">Student</.link>
+      <.link navigate={~p"/"} class="login-btn"> Guest</.link>
+    </div>
+  </div>
+  <% end %>
+</div>
