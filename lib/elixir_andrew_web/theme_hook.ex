@@ -1,7 +1,6 @@
 defmodule ElixirAndrewWeb.ThemeHook do 
-  import Phoenix.LiveView
   import Phoenix.Component, only: [assign: 2]
-  alias ElixirAndrew.Accounts
+  # alias ElixirAndrew.Accounts
 
   def on_mount(:set_theme, _params, _session, socket) do
     # Get theme from user if authenticated, otherwise set to default

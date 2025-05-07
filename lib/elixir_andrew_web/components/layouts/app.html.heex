@@ -1,18 +1,63 @@
 <div class={"#{@theme} flex flex-1 flex-col h-screen bg-light"}>
-  <header class="flex items-center justify-between px-4 sm:px-6 lg:px-8">
-    <%= if !@current_user do %>
-    <.link navigate={~p"/"}> for devs </.link>
-    <% end %>
-
-   <.live_component 
-    module={ElixirAndrewWeb.Component.ThemeSelector} 
-    id="theme-selector" 
-    theme={@theme}
-    />
+  <header class="flex items-center ml-auto px-4 sm:px-6 lg:px-8">
+    <div class="relative py-3">
+      <button 
+        class="bg-secondary rounded-full relative" 
+        type="button" 
+        id="user-menu-button" 
+        phx-click={ElixirAndrewWeb.Layouts.App.toggle_dropdown_menu}
+        >
+        <img src="/images/user-image.svg" alt="User image" class="h-8 w-8 rounded-full border-2 border-light p-1">
+      </button>
+      <div 
+        id="dropdown_menu" 
+        phx-click-away={ElixirAndrewWeb.Layouts.App.toggle_dropdown_menu}
+        class="absolute right-0 mt-2 py-2 w-48 bg-light shadow-xl shadow-secondary border border-secondary" 
+        hidden="true"
+        >
+        <.live_component 
+         module={ElixirAndrewWeb.Component.ThemeSelector} 
+         id="theme-selector" 
+         theme={@theme}
+         class="w-full"
+         />
+          <hr class="h-px bg-secondary border-0 "/>
+        <%= if @current_user do %>
+          <.link
+            href={~p"/users/settings"}
+            class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light"
+            id="user-menu-item">
+            <%= @current_user.first_name || @current_user.username %>
+          </.link>
+          <hr class="h-px bg-secondary border-0 "/>
+          <.link
+            href={~p"/users/log_out"}
+            class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light"
+            id="user-menu-item"        
+            method="delete">
+            Logout
+          </.link>
+        <% else %>
+          <.link
+            href={~p"/users/log_in"}
+            class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light"
+            id="user-menu-item">
+            Login
+          </.link>
+          <hr class="h-px bg-secondary border-0 "/>
+          <.link
+            href={~p"/"}
+            class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light"
+            id="user-menu-item">
+            For Devs
+          </.link>
+        <% end %>
+      
+      </div>
+    </div>
   </header>
-  <main class= "flex-1 flex flex-col px-2 py-2">
-    <pre class="text-xs text-primary">Theme from app: <%= inspect(@theme) %></pre>
-    <.flash_group flash={@flash}/>
-    <%= @inner_content %>
-  </main>
+    <main class= "flex-1 flex flex-col px-2 py-2">
+      <.flash_group flash={@flash}/>
+      <%= @inner_content %>
+    </main>
 </div>
