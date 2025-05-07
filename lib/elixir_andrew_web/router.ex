@@ -70,10 +70,18 @@ defmodule ElixirAndrewWeb.Router do
       live "/dashboard", DashboardLive
       live "/users/:user_id/progress/new", UserProgressLive.New, :new
       live "/users/register", UserRegistrationLive, :new
-      live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
     end
+
   end
+  
+scope "/", ElixirAndrewWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+  live_session :scrollable_authenticated_user, layout: {ElixirAndrewWeb.Layouts, :scrollable}, on_mount: [{ElixirAndrewWeb.UserAuth, :ensure_authenticated}, {ElixirAndrewWeb.ThemeHook, :set_theme}] do
+    live "/users/settings", UserSettingsLive, :edit
+  end
+end
 
   scope "/", ElixirAndrewWeb do
     pipe_through [:browser]
