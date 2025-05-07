@@ -24,16 +24,21 @@
           <hr class="h-px bg-secondary border-0 "/>
         <%= if @current_user do %>
           <.link
-            href={~p"/users/settings"}
-            class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light"
-            id="user-menu-item">
+            href={~p"/dashboard"}
+            class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light">
             <%= @current_user.first_name || @current_user.username %>
           </.link>
           <hr class="h-px bg-secondary border-0 "/>
           <.link
-            href={~p"/users/log_out"}
+            href={~p"/users/settings"}
             class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light"
-            id="user-menu-item"        
+            >
+            Settings
+          </.link>
+          <hr class="h-px bg-secondary border-0 "/>
+          <.link
+            href={~p"/users/log_out"}
+            class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light"  
             method="delete">
             Logout
           </.link>
@@ -41,14 +46,14 @@
           <.link
             href={~p"/users/log_in"}
             class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light"
-            id="user-menu-item">
+            >
             Login
           </.link>
           <hr class="h-px bg-secondary border-0 "/>
           <.link
             href={~p"/"}
             class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light"
-            id="user-menu-item">
+            >
             For Devs
           </.link>
         <% end %>

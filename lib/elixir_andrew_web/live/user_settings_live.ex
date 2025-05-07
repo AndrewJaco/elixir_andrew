@@ -5,7 +5,7 @@ defmodule ElixirAndrewWeb.UserSettingsLive do
 
   def render(assigns) do
     ~H"""
-    <div class="p-12 m-12 border border-dark rounded-lg">
+    <div class="px-32 py-4 m-12 border border-dark rounded-lg">
       <.header class="text-center">
         Profile Settings
         <:subtitle>Manage your profile</:subtitle>
@@ -92,6 +92,12 @@ defmodule ElixirAndrewWeb.UserSettingsLive do
             </:actions>
           </.simple_form>
         </div>
+          <div class="w-full flex justify-end pt-4">
+            <.link 
+              href={~p"/dashboard"}
+              class="text-lg text-gray-600 hover:text-gray-900"
+              > Back to Lessons</.link>
+          </div>
       </div>
     </div>
     """
