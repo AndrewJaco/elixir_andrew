@@ -1,4 +1,9 @@
-<div class={"#{@theme} flex flex-1 flex-col h-screen bg-light"}>
+<div 
+  class={"#{@theme} flex flex-1 flex-col h-screen bg-light"}
+  id="app-wrapper"
+  phx-hook="ThemeHandler"
+  data-theme={@theme}
+  >
   <header class="flex items-center ml-auto px-4 sm:px-6 lg:px-8">
     <div class="relative py-3">
       <button 

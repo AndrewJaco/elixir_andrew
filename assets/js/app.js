@@ -44,6 +44,39 @@ Hooks.AutoClearFlash = {
   }
 }
 
+Hooks.ThemeHandler = {
+  mounted() {
+    const savedTheme = localStorage.getItem("theme")
+    if (savedTheme) {
+      document.documentElement.classList.remove("theme-mc", "theme-hk", "theme-lg")
+      document.documentElement.classList.add(savedTheme)
+
+      //push theme to the server to sync with session if needed
+      if (this.el.dataset.theme !== savedTheme) {
+        this.pushEvent("sync-theme", { theme: savedTheme })
+      }
+    }
+  }
+}
+
+//add event listeners for theme handling outside the hooks
+//these will work even outside the LiveView components
+window.addEventListener("phx:store_theme", (e) => {
+  const theme = e.detail.theme
+  document.documentElement.classList.remove("theme-mc", "theme-hk", "theme-lg");
+  if (theme) document.documentElement.classList.add(theme);
+  localStorage.setItem("theme", theme)
+})
+
+//initialize on page load
+document.addEventListener("DOMContentLoaded", () => {
+  const savedTheme = localStorage.getItem("theme")
+  if (savedTheme) {
+    document.documentElement.classList.remove("theme-mc", "theme-hk", "theme-lg")
+    document.documentElement.classList.add(savedTheme)
+  }
+})
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,

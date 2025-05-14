@@ -4,18 +4,34 @@
 
 :root {
   --color-primary: #509D96;
-  --color-secondary: #911F1F;
+  --color-secondary: #5f7b6d;
   --color-light: #F9F6E8;
   --color-dark: #272542;
-  --color-accent: #C1E8D5;
+  --color-accent: #911F1F;
 }
 
 .theme-mc {
   --color-primary: #637f40;
   --color-secondary: #926C4D;
-  --color-light: #AAAAAA;
+  --color-light: #c5c2c2;
   --color-dark: #373737;
   --color-accent: #3F76E4;
+}
+
+.theme-hk {
+  --color-primary: #E16389;
+  --color-secondary: #f98eaa;
+  --color-light: #F9F6E8;
+  --color-dark: #5a5858;
+  --color-accent: #095d9a;
+}
+
+.theme-lg {
+  --color-primary: #FDE000;
+  --color-secondary: #0055BF;
+  --color-light: #FFFFFF;
+  --color-dark: #05131D;
+  --color-accent: #B40000;
 }
 
 /* This file is for your main application CSS */

@@ -6,8 +6,9 @@ defmodule ElixirAndrewWeb.DashboardLive do
   end
 
   def handle_info({:theme_changed, theme}, socket) do
-    # Handle the theme change event here
-    # For example, you might want to store the theme in the session or database
-    {:noreply, assign(socket, theme: theme)}
+    {:noreply, 
+      socket
+      |> Phoenix.LiveView.put_session(:theme, theme)
+      |> assign(:theme, theme)}
   end
 end

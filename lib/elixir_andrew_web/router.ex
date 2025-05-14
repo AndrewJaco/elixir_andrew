@@ -20,7 +20,7 @@ defmodule ElixirAndrewWeb.Router do
   scope "/", ElixirAndrewWeb do
     pipe_through :browser
 
-    live_session :themed_public, on_mount: [{ElixirAndrewWeb.UserAuth, :mount_current_user}, {ElixirAndrewWeb.ThemeHook, :set_theme}] do
+    live_session :themed_public, on_mount: [{ElixirAndrewWeb.UserAuth, :mount_current_user}, {ElixirAndrewWeb.ThemeHook, :default}] do
       live "/", HomeLive, :index
     end
   end
@@ -53,7 +53,10 @@ defmodule ElixirAndrewWeb.Router do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
 
     live_session :redirect_if_user_is_authenticated,
-      on_mount: [{ElixirAndrewWeb.UserAuth, :redirect_if_user_is_authenticated}, {ElixirAndrewWeb.ThemeHook, :set_theme}] do
+      on_mount: [
+        {ElixirAndrewWeb.UserAuth, :redirect_if_user_is_authenticated}, 
+        {ElixirAndrewWeb.ThemeHook, :default}
+        ] do
       live "/users/log_in", UserLoginLive, :new
       live "/users/reset_password", UserForgotPasswordLive, :new
       live "/users/reset_password/:token", UserResetPasswordLive, :edit
@@ -66,7 +69,10 @@ defmodule ElixirAndrewWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
-      on_mount: [{ElixirAndrewWeb.UserAuth, :ensure_authenticated}, {ElixirAndrewWeb.ThemeHook, :set_theme}] do
+      on_mount: [
+        {ElixirAndrewWeb.UserAuth, :ensure_authenticated},
+        {ElixirAndrewWeb.ThemeHook, :default}
+        ] do
       live "/dashboard", DashboardLive
       live "/users/:user_id/progress/new", UserProgressLive.New, :new
       live "/users/register", UserRegistrationLive, :new
@@ -78,8 +84,13 @@ defmodule ElixirAndrewWeb.Router do
 scope "/", ElixirAndrewWeb do
     pipe_through [:browser, :require_authenticated_user]
 
-  live_session :scrollable_authenticated_user, layout: {ElixirAndrewWeb.Layouts, :scrollable}, on_mount: [{ElixirAndrewWeb.UserAuth, :ensure_authenticated}, {ElixirAndrewWeb.ThemeHook, :set_theme}] do
-    live "/users/settings", UserSettingsLive, :edit
+  live_session :scrollable_authenticated_user, 
+    layout: {ElixirAndrewWeb.Layouts, :scrollable}, 
+    on_mount: [
+      {ElixirAndrewWeb.UserAuth, :ensure_authenticated}, 
+      {ElixirAndrewWeb.ThemeHook, :default}
+      ] do
+      live "/users/settings", UserSettingsLive, :edit
   end
 end
 
@@ -89,7 +100,7 @@ end
     delete "/users/log_out", UserSessionController, :delete
 
     live_session :current_user,
-      on_mount: [{ElixirAndrewWeb.UserAuth, :mount_current_user}, {ElixirAndrewWeb.ThemeHook, :set_theme}] do
+      on_mount: [{ElixirAndrewWeb.UserAuth, :mount_current_user}, {ElixirAndrewWeb.ThemeHook, :default}] do
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new
     end
