@@ -6,9 +6,6 @@ defmodule ElixirAndrewWeb.DashboardLive do
   end
 
   def handle_info({:theme_changed, theme}, socket) do
-    {:noreply, 
-      socket
-      |> Phoenix.LiveView.put_session(:theme, theme)
-      |> assign(:theme, theme)}
+    {:noreply, assign(socket, :theme, theme)}
   end
 end
