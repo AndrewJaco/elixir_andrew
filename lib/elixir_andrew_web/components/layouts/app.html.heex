@@ -17,16 +17,9 @@
       <div 
         id="dropdown_menu" 
         phx-click-away={ElixirAndrewWeb.Layouts.App.toggle_dropdown_menu}
-        class="absolute right-0 mt-2 py-2 w-48 bg-light shadow-xl shadow-secondary border border-secondary" 
+        class="absolute right-0 mt-2 w-48 bg-white shadow-xl shadow-secondary border border-secondary" 
         hidden="true"
         >
-        <.live_component 
-         module={ElixirAndrewWeb.Component.ThemeSelector} 
-         id="theme-selector" 
-         theme={@theme}
-         class="w-full"
-         />
-          <hr class="h-px bg-secondary border-0 "/>
         <%= if @current_user do %>
           <.link
             href={~p"/dashboard"}
@@ -62,7 +55,13 @@
             For Devs
           </.link>
         <% end %>
-      
+        <hr class="h-px bg-secondary border-0 "/>
+        <.live_component 
+         module={ElixirAndrewWeb.Component.ThemeSelector} 
+         id="theme-selector" 
+         theme={@theme}
+         class="w-full"
+         />
       </div>
     </div>
   </header>
