@@ -1,3 +1,12 @@
-<div class={"#{@theme} flex items-center justify-center"}>
-  <p class="text-primary">Hi <%= @current_user.first_name %> <%= @current_user.last_name %></p>
+<div class={"#{@theme} flex flex-col items-center justify-center"}>
+  <%= if @current_user.role == "admin" do %>
+    <h1 class="text-primary text-[50px] font-bold">Admin Dashboard</h1>
+    <div class="flex items-center justify-center gap-4 border-2 border-primary rounded-lg mt-8 p-4">
+      <.link class="admin-btn" navigate={~p"/users/register"}>Register Student</.link>
+      <.link class="admin-btn">Register Teacher</.link>
+      <.link class="admin-btn">Student List</.link>
+    </div>
+  <% else %>
+    <p class="text-primary">Hi <%= @current_user.first_name %> <%= @current_user.last_name %></p>
+  <% end %>
 </div>

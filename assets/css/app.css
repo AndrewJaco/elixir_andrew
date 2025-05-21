@@ -44,6 +44,11 @@
 
 /* This file is for your main application CSS */
 .login-btn {
-  @apply bg-blue-500 text-white font-bold py-8 px-12 rounded-lg border-8 border-teal-500 border-solid;
-  @apply hover:bg-blue-700;
+  @apply bg-primary text-white font-bold text-xl py-12 px-20 border-8 border-accent border-solid;
+  @apply hover:bg-accent;
+}
+
+.admin-btn {
+  @apply bg-primary text-white font-bold text-xl py-12 px-20 border-8 border-accent border-solid;
+  @apply hover:bg-accent;
 }

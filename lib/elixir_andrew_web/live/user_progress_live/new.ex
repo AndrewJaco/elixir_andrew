@@ -50,7 +50,7 @@ defmodule ElixirAndrewWeb.UserProgressLive.New do
 
     case Progress.create_user_progress(user_progress_params) do
       {:ok, _user_progress} ->
-        {:noreply, socket |> put_flash(:info, "User progress created successfully.") |> push_navigate(to: ~p"/")}
+        {:noreply, socket |> put_flash(:info, "User progress created successfully.") |> push_navigate(to: ~p"/dashboard")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         error_message = changeset_error_to_string(changeset)
@@ -77,7 +77,7 @@ defmodule ElixirAndrewWeb.UserProgressLive.New do
   defp update_user_progress(user_progress_params, socket) do
     case Progress.update_user_progress(socket.assigns.user, user_progress_params) do
       {:ok, _user_progress} ->
-        {:noreply, socket |> put_flash(:info, "User progress updated successfully.") |> push_navigate(to: ~p"/")}
+        {:noreply, socket |> put_flash(:info, "User progress updated successfully.") |> push_navigate(to: ~p"/dashboard")}
 
       {:error, message} ->
         socket = put_flash(socket, :error, message)
