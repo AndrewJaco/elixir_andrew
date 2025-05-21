@@ -14,7 +14,7 @@ defmodule ElixirAndrewWeb.Component.ThemeSelector do
           phx-change="change_theme" 
           phx-target={@myself}
           class="p-2 w-full border border-primary rounded-md bg-none text-center appearance-none">
-          <option value="" selected={@theme == ""}>T. Andrew</option>
+          <option value="" selected={@theme == "theme-default"}>T. Andrew</option>
           <option value="theme-mc" selected={@theme == "theme-mc"}>Minecraft</option>
           <option value="theme-hk" selected={@theme == "theme-hk"}>Hello Kitty</option>
           <option value="theme-lg" selected={@theme == "theme-lg"}>Lego</option>

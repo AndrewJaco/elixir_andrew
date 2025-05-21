@@ -10,6 +10,14 @@
   --color-accent: #911F1F;
 }
 
+.theme-default {
+  --color-primary: #509D96;
+  --color-secondary: #5f7b6d;
+  --color-light: #F9F6E8;
+  --color-dark: #272542;
+  --color-accent: #911F1F;
+}
+
 .theme-mc {
   --color-primary: #637f40;
   --color-secondary: #926C4D;

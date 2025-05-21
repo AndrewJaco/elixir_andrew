@@ -13,6 +13,7 @@ defmodule ElixirAndrew.Accounts.User do
     field :first_name, :string
     field :last_name, :string
     field :age, :integer
+    field :theme, :string, default: "theme-default"
     field :role, :string, default: "user"
     has_one :user_progress, ElixirAndrew.Progress.UserProgress
 

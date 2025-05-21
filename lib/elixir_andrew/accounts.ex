@@ -368,4 +368,12 @@ defmodule ElixirAndrew.Accounts do
       {:error, :user, changeset, _} -> {:error, changeset}
     end
   end  
+
+  def update_user_theme(user_id, theme) do
+    user = Repo.get!(User, user_id)
+
+    user
+    |> Ecto.Changeset.change(theme: theme)
+    |> Repo.update()
+  end
 end

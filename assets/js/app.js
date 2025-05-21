@@ -48,7 +48,7 @@ Hooks.ThemeHandler = {
   mounted() {
     const savedTheme = localStorage.getItem("theme")
     if (savedTheme) {
-      document.documentElement.classList.remove("theme-mc", "theme-hk", "theme-lg")
+      document.documentElement.classList.remove("theme-mc", "theme-hk", "theme-lg", "theme-default")
       document.documentElement.classList.add(savedTheme)
 
       //push theme to the server to sync with session if needed
@@ -63,7 +63,7 @@ Hooks.ThemeHandler = {
 //these will work even outside the LiveView components
 window.addEventListener("phx:store_theme", (e) => {
   const theme = e.detail.theme
-  document.documentElement.classList.remove("theme-mc", "theme-hk", "theme-lg");
+  document.documentElement.classList.remove("theme-mc", "theme-hk", "theme-lg", "theme-default");
   if (theme) document.documentElement.classList.add(theme);
   localStorage.setItem("theme", theme)
 })
@@ -72,7 +72,7 @@ window.addEventListener("phx:store_theme", (e) => {
 document.addEventListener("DOMContentLoaded", () => {
   const savedTheme = localStorage.getItem("theme")
   if (savedTheme) {
-    document.documentElement.classList.remove("theme-mc", "theme-hk", "theme-lg")
+    document.documentElement.classList.remove("theme-mc", "theme-hk", "theme-lg", "theme-default")
     document.documentElement.classList.add(savedTheme)
   }
 })
