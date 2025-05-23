@@ -373,6 +373,17 @@ defmodule ElixirAndrew.Accounts do
     end
   end  
 
+  @doc """
+  Updates the user theme.
+  ## Examples
+
+      iex> update_user_theme(user, "theme-mc")
+      {:ok, %User{}}
+
+      iex> update_user_theme(user, "invalid")
+      {:error, %Ecto.Changeset{}}
+
+  """
   def update_user_theme(user_id, theme) do
     user = Repo.get!(User, user_id)
 
@@ -380,4 +391,31 @@ defmodule ElixirAndrew.Accounts do
     |> Ecto.Changeset.change(theme: theme)
     |> Repo.update()
   end
+
+  def assign_teacher(student, teacher) do
+    # Ensure the student is a student and teacher is a teacher
+    if student.role == "student" and teacher.role == "teacher" do
+      student
+      |> User.role_changeset(%{teacher_id: teacher.id})
+      |> Repo.update()
+    else
+      {:error, "Invalid role assignment"}
+    end
+  end
+
+  def list_students(teacher_id) do
+    from(u in User, where: u.role == "student" and u.teacher_id == ^teacher_id)
+    |> Repo.all()
+  end
+
+  def list_teachers() do
+    from(u in User, where: u.role == "teacher")
+    |> Repo.all()
+  end
+
+  def list_all_students() do
+    from(u in User, where: u.role == "student")
+    |> Repo.all()
+  end
+
 end

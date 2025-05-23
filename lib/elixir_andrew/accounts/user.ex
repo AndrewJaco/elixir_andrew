@@ -14,7 +14,11 @@ defmodule ElixirAndrew.Accounts.User do
     field :last_name, :string
     field :age, :integer
     field :theme, :string, default: "theme-default"
-    field :role, :string, default: "user"
+    field :role, :string, default: "student"
+
+    belongs_to :teacher, ElixirAndrew.Accounts.User, foreign_key: :teacher_id
+    has_many :students, ElixirAndrew.Accounts.User, foreign_key: :teacher_id
+
     has_one :user_progress, ElixirAndrew.Progress.UserProgress
 
     timestamps(type: :utc_datetime)
@@ -71,14 +75,6 @@ defmodule ElixirAndrew.Accounts.User do
       changeset
     end
   end
-
-  # defp validate_email(changeset, opts) do
-  #   changeset
-  #   |> validate_required([:email])
-  #   |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
-  #   |> validate_length(:email, max: 160)
-  #   |> maybe_validate_unique_email(opts)
-  # end
 
   defp validate_password(changeset, opts) do
     changeset
@@ -161,6 +157,27 @@ defmodule ElixirAndrew.Accounts.User do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
     change(user, confirmed_at: now)
   end
+
+  def role_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:role, :teacher_id])
+    |> validate_inclusion(:role, ["admin", "teacher", "student"])
+    |> validate_teacher_student_relationship()
+  end
+
+  defp validate_teacher_student_relationship(changeset) do
+    role = get_field(changeset, :role)
+    teacher_id = get_field(changeset, :teacher_id)
+
+    case {role, teacher_id} do
+      {"student", nil} ->
+        add_error(changeset, :teacher_id, "student must have a teacher")
+
+      {role, teacher_id} when (role=== "admin" or role==="teacher") and not is_nil(teacher_id) ->
+        add_error(changeset, :teacher_id, "admin and teacher cannot have a teacher")
+      _ ->
+        changeset
+    end
 
   @doc """
   Verifies the password.
