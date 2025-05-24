@@ -49,9 +49,10 @@ defmodule ElixirAndrew.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:username, :password])
+    |> cast(attrs, [:username, :password, :teacher_id, :role])
     |> validate_username(opts)
     |> validate_password(opts)
+    |> validate_teacher_student_relationship()
   end
 
   defp validate_username(changeset, _opts) do
@@ -178,7 +179,7 @@ defmodule ElixirAndrew.Accounts.User do
       _ ->
         changeset
     end
-
+  end
   @doc """
   Verifies the password.
 

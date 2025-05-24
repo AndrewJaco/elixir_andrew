@@ -44,6 +44,10 @@ defmodule ElixirAndrewWeb.UserRegistrationLive do
   end
 
   def handle_event("save", %{"user" => user_params}, socket) do
+    user_params = user_params
+    |> Map.put("teacher_id", socket.assigns.current_user.id)
+    |> Map.put("role", "student")
+    
     case Accounts.register_user(user_params) do
       {:ok, user} ->
         changeset = Accounts.change_user_registration(%User{})
