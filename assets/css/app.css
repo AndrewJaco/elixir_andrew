@@ -35,8 +35,8 @@
 }
 
 .theme-lg {
-  --color-primary: #FDE000;
-  --color-secondary: #0055BF;
+  --color-primary: #0055BF;
+  --color-secondary: #FDE000;
   --color-light: #FFFFFF;
   --color-dark: #05131D;
   --color-accent: #B40000;

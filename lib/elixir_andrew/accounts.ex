@@ -44,6 +44,18 @@ defmodule ElixirAndrew.Accounts do
     if User.valid_password?(user, password), do: user
   end
 
+  @doc """
+  Gets a user by username.
+  Returns `nil` if the User does not exist.
+  ## Examples
+
+      iex> get_user_by_username!("john_doe")
+      %User{}
+
+      iex> get_user_by_username!("unknown_user")
+      nil
+
+  """
   def get_user_by_username!(username) when is_binary(username) do
     Repo.get_by(User, username: username)
   end

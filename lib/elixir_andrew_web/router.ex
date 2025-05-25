@@ -75,7 +75,8 @@ defmodule ElixirAndrewWeb.Router do
         ] do
       live "/dashboard", DashboardLive
       live "/users/:user_id/progress/new", UserProgressLive.New, :new
-      live "/users/register", UserRegistrationLive, :new
+      live "/users/register", UserRegistrationLive, :new_student
+      live "/teachers/register", UserRegistrationLive, :new_teacher
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
     end
 
