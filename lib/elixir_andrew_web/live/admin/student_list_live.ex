@@ -1,4 +1,4 @@
-defmodule ElixirAndrewWeb.StudentListLive do
+defmodule ElixirAndrewWeb.Admin.StudentListLive do
   use Phoenix.LiveView
   alias ElixirAndrew.Accounts
 
@@ -14,6 +14,5 @@ defmodule ElixirAndrewWeb.StudentListLive do
     # students = Accounts.list_students(user_id)
     # {:ok, assign(socket, students: students)}
   end
-
 
 end

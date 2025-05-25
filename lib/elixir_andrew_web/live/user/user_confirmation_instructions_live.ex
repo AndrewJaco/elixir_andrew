@@ -1,4 +1,4 @@
-defmodule ElixirAndrewWeb.UserConfirmationInstructionsLive do
+defmodule ElixirAndrewWeb.User.UserConfirmationInstructionsLive do
   use ElixirAndrewWeb, :live_view
 
   alias ElixirAndrew.Accounts

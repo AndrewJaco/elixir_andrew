@@ -20,13 +20,6 @@
         class="absolute right-0 mt-2 py-2 w-48 bg-light shadow-xl shadow-secondary border border-secondary" 
         hidden="true"
         >
-        <.live_component 
-         module={ElixirAndrewWeb.Component.ThemeSelector} 
-         id="theme-selector" 
-         theme={@theme}
-         class="w-full"
-         />
-          <hr class="h-px bg-secondary border-0 "/>
         <%= if @current_user do %>
           <.link
             href={~p"/dashboard"}
@@ -48,6 +41,13 @@
             method="delete">
             Logout
           </.link>
+          <hr class="h-px bg-secondary border-0 "/>
+          <.live_component 
+            module={ElixirAndrewWeb.Component.ThemeSelector} 
+            id="theme-selector" 
+            theme={@theme}
+            class="w-full"
+            />
         <% else %>
           <.link
             href={~p"/users/log_in"}

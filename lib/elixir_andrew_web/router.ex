@@ -57,9 +57,9 @@ defmodule ElixirAndrewWeb.Router do
         {ElixirAndrewWeb.UserAuth, :redirect_if_user_is_authenticated}, 
         {ElixirAndrewWeb.ThemeHook, :default}
         ] do
-      live "/users/log_in", UserLoginLive, :new
-      live "/users/reset_password", UserForgotPasswordLive, :new
-      live "/users/reset_password/:token", UserResetPasswordLive, :edit
+      live "/users/log_in", User.UserLoginLive, :new
+      live "/users/reset_password", User.UserForgotPasswordLive, :new
+      live "/users/reset_password/:token", User.UserResetPasswordLive, :edit
     end
 
     post "/users/log_in", UserSessionController, :create
@@ -73,11 +73,12 @@ defmodule ElixirAndrewWeb.Router do
         {ElixirAndrewWeb.UserAuth, :ensure_authenticated},
         {ElixirAndrewWeb.ThemeHook, :default}
         ] do
-      live "/dashboard", DashboardLive
-      live "/users/:user_id/progress/new", UserProgressLive.New, :new
-      live "/users/register", UserRegistrationLive, :new_student
-      live "/teachers/register", UserRegistrationLive, :new_teacher
-      live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+      live "/dashboard", Admin.DashboardLive
+      live "/student/dashboard", StudentDashboardLive, :index
+      live "/users/register", User.UserRegistrationLive, :new_student
+      live "/teachers/register", User.UserRegistrationLive, :new_teacher
+      live "/users/:user_id/progress/new", User.UserProgressLive.New, :new
+      live "/users/settings/confirm_email/:token", User.UserSettingsLive, :confirm_email
     end
 
   end
@@ -91,7 +92,7 @@ scope "/", ElixirAndrewWeb do
       {ElixirAndrewWeb.UserAuth, :ensure_authenticated}, 
       {ElixirAndrewWeb.ThemeHook, :default}
       ] do
-      live "/users/settings", UserSettingsLive, :edit
+      live "/users/settings", User.UserSettingsLive, :edit
   end
 end
 
@@ -102,8 +103,8 @@ end
 
     live_session :current_user,
       on_mount: [{ElixirAndrewWeb.UserAuth, :mount_current_user}, {ElixirAndrewWeb.ThemeHook, :default}] do
-      live "/users/confirm/:token", UserConfirmationLive, :edit
-      live "/users/confirm", UserConfirmationInstructionsLive, :new
+      live "/users/confirm/:token", User.UserConfirmationLive, :edit
+      live "/users/confirm", User.UserConfirmationInstructionsLive, :new
     end
   end
 end

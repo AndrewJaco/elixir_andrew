@@ -1,4 +1,4 @@
-defmodule ElixirAndrewWeb.UserLoginLive do
+defmodule ElixirAndrewWeb.User.UserLoginLive do
   use ElixirAndrewWeb, :live_view
 
   def render(assigns) do

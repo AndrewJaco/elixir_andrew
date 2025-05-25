@@ -1,4 +1,4 @@
-defmodule ElixirAndrewWeb.DashboardLive do
+defmodule ElixirAndrewWeb.Admin.DashboardLive do
   use ElixirAndrewWeb, :live_view
 
   def mount(_params, _session, socket) do

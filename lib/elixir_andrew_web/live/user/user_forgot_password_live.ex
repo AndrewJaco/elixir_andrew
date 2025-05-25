@@ -1,4 +1,4 @@
-defmodule ElixirAndrewWeb.UserForgotPasswordLive do
+defmodule ElixirAndrewWeb.User.UserForgotPasswordLive do
   use ElixirAndrewWeb, :live_view
 
   alias ElixirAndrew.Accounts
