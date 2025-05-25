@@ -47,15 +47,26 @@ Hooks.AutoClearFlash = {
 Hooks.ThemeHandler = {
   mounted() {
     const savedTheme = localStorage.getItem("theme")
+
     if (savedTheme) {
       document.documentElement.classList.remove("theme-mc", "theme-hk", "theme-lg", "theme-default")
       document.documentElement.classList.add(savedTheme)
 
       //push theme to the server to sync with session if needed
       if (this.el.dataset.theme !== savedTheme) {
-        this.pushEvent("sync-theme", { theme: savedTheme })
+        // Use debouncing to avoid too many requests
+        clearTimeout(Hooks.ThemeHandler._syncTimer)
+
+        Hooks.ThemeHandler._syncTimer = setTimeout(() => {
+          this.pushEvent("sync-theme", { theme: savedTheme })
+        }, 100)
       }
     }
+  },
+
+  destroyed() {
+    //clear the timer if the hook is destroyed
+    clearTimeout(Hooks.ThemeHandler._syncTimer)
   }
 }
 
