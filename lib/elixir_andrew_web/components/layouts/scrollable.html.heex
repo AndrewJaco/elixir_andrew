@@ -22,7 +22,7 @@
         >
         <%= if @current_user do %>
           <.link
-            href={~p"/dashboard"}
+            href={ElixirAndrewWeb.Layouts.App.dashboard_path(@current_user)}
             class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light"
             >
             <%= @current_user.first_name || @current_user.username %>

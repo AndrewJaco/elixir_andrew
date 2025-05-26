@@ -74,7 +74,7 @@ defmodule ElixirAndrewWeb.Router do
         {ElixirAndrewWeb.ThemeHook, :default}
         ] do
       live "/dashboard", Admin.DashboardLive
-      live "/student/dashboard", StudentDashboardLive, :index
+      live "/student/home", Student.StudentHomeLive
       live "/users/register", User.UserRegistrationLive, :new_student
       live "/teachers/register", User.UserRegistrationLive, :new_teacher
       live "/users/:user_id/progress/new", User.UserProgressLive.New, :new

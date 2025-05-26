@@ -94,7 +94,7 @@ defmodule ElixirAndrewWeb.User.UserSettingsLive do
         </div>
           <div class="w-full flex justify-end pt-4">
             <.link 
-              href={~p"/dashboard"}
+              href={ElixirAndrewWeb.Layouts.App.dashboard_path(@current_user)}
               class="text-lg text-gray-600 hover:text-gray-900"
               > Back to Lessons</.link>
           </div>

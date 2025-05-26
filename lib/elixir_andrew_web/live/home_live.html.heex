@@ -2,7 +2,11 @@
   <%= if @current_user do %>
     <div class="flex flex-col items-center">
       <h2>Welcome back <%= @current_user.first_name %>!</h2>
-      <.link navigate={~p"/dashboard"} class="btn">Go to Dashboard</.link>
+      <%= if @current_user.role == "teacher" || @current_user.role == "admin" do %>
+        <.link navigate={~p"/dashboard"} class="btn">Teacher Dashboard</.link>
+      <%= else %>
+        <.link navigate={~p"/student/home"} class="btn">Go to your class</.link>
+      <% end %>
       <.link 
         href={~p"/users/log_out"}
         method="delete"
@@ -10,7 +14,7 @@
         Log Out
       </.link>
     </div>
-  <% else %>
+  <%= else %>
   <div class="flex flex-col flex-1">
       <div class="flex justify-center mt-10">
         <h1 class="text-primary text-[50px] font-bold">Teacher Andrew's Class</h1>

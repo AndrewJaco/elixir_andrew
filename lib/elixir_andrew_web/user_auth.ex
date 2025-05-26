@@ -33,7 +33,7 @@ defmodule ElixirAndrewWeb.UserAuth do
     |> renew_session()
     |> put_token_in_session(token)
     |> maybe_write_remember_me_cookie(token, params)
-    |> redirect(to: signed_in_path(conn))
+    |> redirect(to: signed_in_path(user))
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
@@ -225,5 +225,12 @@ defmodule ElixirAndrewWeb.UserAuth do
 
   defp maybe_store_return_to(conn), do: conn
 
-  defp signed_in_path(_conn), do: ~p"/dashboard"
+  defp signed_in_path(user) do
+    case user.role do
+      "admin" -> ~p"/dashboard"
+      "teacher" -> ~p"/dashboard"
+      "student" -> ~p"/student/home"
+      _ -> ~p"/"
+    end
+  end
 end
