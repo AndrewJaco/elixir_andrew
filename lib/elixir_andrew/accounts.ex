@@ -416,17 +416,21 @@ defmodule ElixirAndrew.Accounts do
   end
 
   def list_students(teacher_id) do
-    from(u in User, where: u.role == "student" and u.teacher_id == ^teacher_id)
+    from(u in User, 
+      where: u.role == "student" and u.teacher_id == ^teacher_id,
+      order_by: [asc: u.username])
     |> Repo.all()
   end
 
   def list_teachers() do
-    from(u in User, where: u.role == "teacher")
+    from(u in User, where: u.role == "teacher",
+    order_by: [asc: u.username])
     |> Repo.all()
   end
 
   def list_all_students() do
-    from(u in User, where: u.role == "student")
+    from(u in User, where: u.role == "student",
+      order_by: [asc: u.username])
     |> Repo.all()
   end
 

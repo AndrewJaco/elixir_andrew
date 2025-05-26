@@ -4,13 +4,13 @@
     <div class="flex items-center justify-center gap-4 border-2 border-primary rounded-lg mt-8 p-4">
       <.link class="admin-btn" navigate={~p"/users/register"}>Register Student</.link>
       <.link class="admin-btn" navigate={~p"/teachers/register"}>Register Teacher</.link>
-      <.link class="admin-btn">Student List</.link>
+      <.link class="admin-btn" navigate={~p"/dashboard/students"}>Student List</.link>
     </div>
   <% else %>
     <h1 class="text-primary text-[50px] font-bold">Teacher Dashboard</h1>
     <div class="flex items-center justify-center gap-4 border-2 border-primary rounded-lg mt-8 p-4">
       <.link class="admin-btn" navigate={~p"/users/register"}>Register Student</.link>
-      <.link class="admin-btn" navigate={~p"/"}>Student List</.link>
+      <.link class="admin-btn" navigate={~p"/dashboard/students"}>Student List</.link>
     </div>
   <% end %>
 </div>

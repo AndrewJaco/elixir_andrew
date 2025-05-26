@@ -52,3 +52,8 @@
   @apply bg-primary text-white font-bold text-xl py-12 px-20 border-8 border-accent border-solid;
   @apply hover:bg-accent;
 }
+
+.edit-btn {
+  @apply bg-secondary text-white text-sm py-2 px-4 border-2 border-accent border-solid;
+  @apply hover:bg-accent;
+}

@@ -1,18 +1,18 @@
 defmodule ElixirAndrewWeb.Admin.StudentListLive do
-  use Phoenix.LiveView
+  use ElixirAndrewWeb, :live_view
   alias ElixirAndrew.Accounts
 
-  def mount(_params, _session, _socket) do
-    # if connected?(socket) do
-    #   current_user = get_current_user(socket)
-    #   if current_user.role == "admin" do
-    #     user_id = current_user.id
-    #   else
-    #     {:error, :unauthorized}
-    #   end
-    # end
-    # students = Accounts.list_students(user_id)
-    # {:ok, assign(socket, students: students)}
+  def mount(_params, _session, socket) do
+    teacher = socket.assigns[:current_user]
+
+    students = 
+      if teacher && teacher.role == "teacher" || teacher.role == "admin" do
+        Accounts.list_students(teacher.id)
+      else
+        []
+      end
+
+    {:ok, assign(socket, students: students)}
   end
 
 end
