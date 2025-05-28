@@ -8,7 +8,7 @@
       <div class="flex items-center gap-2 border border-primary p-2 w-full">
         <div class="flex flex-col mr-8">
           <h2 class="text-primary text-lg font-bold"><%= student.first_name %> <%= student.last_name %></h2>
-          <.link class="text-accent hover:text-secondary" navigate={~p"/students/#{student.id}/edit"}><%= student.username %></.link>
+          <.link class="text-accent hover:text-secondary" navigate={~p"/dashboard/students/#{student.id}"}><%= student.username %></.link>
         </div>
         <div class="flex items-center gap-2 ml-auto">
           <.link class="edit-btn" navigate={~p"/students"}>Update Progress</.link>

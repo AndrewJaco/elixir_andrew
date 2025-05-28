@@ -107,6 +107,25 @@ defmodule ElixirAndrew.Accounts.User do
 
   @doc """
   A user changeset for updating the profile.
+  It requires the username and first name to be present.
+  It also validates the username format and length.
+  It checks for uniqueness of the username, but only if it has changed.
+  """
+
+  def profile_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:username, :first_name, :last_name])
+    |> validate_required([:username, :first_name])
+    |> validate_length(:username, min: 3, max: 20)
+    |> validate_length(:first_name, min: 2, max: 20)
+    |> validate_length(:last_name, min: 2, max: 20)
+    |> validate_format(:username, ~r/^[a-zA-Z0-9_]+$/, message: "can only contain letters, numbers, and underscores")
+    |> unsafe_validate_unique(:username, ElixirAndrew.Repo)
+    |> unique_constraint(:username)
+  end
+
+  @doc """
+  A user changeset for updating the profile's name only.
   It doesn't require the last name to be present.
   """
   def name_changeset(user, attrs) do

@@ -111,7 +111,7 @@ defmodule ElixirAndrew.Accounts do
 
   ## Settings
   @doc """
-  Returns an `%Ecto.Changeset{}` for changing the user name."
+  Returns an `%Ecto.Changeset{}` for changing the user's fist and last name."
   
   ## Examples
 
@@ -128,7 +128,28 @@ defmodule ElixirAndrew.Accounts do
     |> User.name_changeset(attrs)
     |> Repo.update()
   end
-  
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user profile.
+  This is used for updating user profile information including username, first name, and last name.
+  It does not require the last name to be present. 
+  ## Examples
+
+      iex> change_user_profile(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+
+  def change_user_profile(user, attrs \\ %{}) do
+    User.profile_changeset(user, attrs)
+  end
+
+  def update_user_profile(user, attrs) do
+    user
+    |> User.profile_changeset(attrs)
+    |> Repo.update()
+  end
+
   @doc """
   Returns an `%Ecto.Changeset{}` for changing the user email.
 

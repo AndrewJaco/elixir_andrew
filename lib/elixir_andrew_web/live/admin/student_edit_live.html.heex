@@ -1,0 +1,42 @@
+<div class="px-32 py-4 m-12 border border-dark rounded-lg">
+      <.header class="text-center">
+        Student Settings
+        <:subtitle>Manage your students</:subtitle>
+      </.header>
+
+      <div class="space-y-12 divide-y">
+        <div> 
+          <.simple_form
+            for={@name_form}
+            id="name_form"
+            phx-submit="update_name"
+            phx-change="validate_name"
+          >
+            <.input
+              field={@name_form[:username]}
+              type="text"
+              label="Username"
+              />
+            <.input 
+              field={@name_form[:first_name]} 
+              type="text" 
+              label="First Name"
+              />
+            <.input 
+              field={@name_form[:last_name]} 
+              type="text" 
+              label="Last Name" 
+              />
+            <:actions>
+              <.button phx-disable-with="Changing...">Change Profile</.button>
+            </:actions>
+          </.simple_form>
+        </div>
+          <div class="w-full flex justify-end pt-4">
+            <.link 
+              href={~p"/dashboard/students"}
+              class="text-lg text-gray-600 hover:text-gray-900"
+              > Back to Student List</.link>
+          </div>
+      </div>
+    </div>
