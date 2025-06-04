@@ -47,6 +47,30 @@ defmodule ElixirAndrewWeb.Admin.StudentEditLive do
     {:noreply, assign(socket, name_form: to_form(profile_changeset))}
   end
 
+  def handle_event("remove_student", _params, socket) do
+    student = socket.assigns.student
+
+    case Accounts.remove_student_from_teacher(student) do
+      {:ok, _updated_user} ->
+        {:noreply, 
+          socket
+          |> put_flash(:info, "Student removed successfully.")
+          |> push_navigate(to: ~p"/dashboard/students")
+        }
+
+      {:error, message} when is_binary(message) ->
+        {:noreply, 
+          socket
+          |> put_flash(:error, message)
+        }
+
+        {:error, %Ecto.Changeset{} = changeset} ->
+          {:noreply,
+            socket
+            |> put_flash(:error, "Failed to remove student: #{inspect(changeset.errors)}")}
+    end
+  end
+
   defp validate_name_format(changeset) do
     changeset
     |> Ecto.Changeset.validate_length(:first_name, min: 1, max: 20)

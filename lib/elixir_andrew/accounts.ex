@@ -436,6 +436,17 @@ defmodule ElixirAndrew.Accounts do
     end
   end
 
+  def remove_student_from_teacher(student) do
+    # Ensure the student is a student role
+    if student.role == "student" do
+      student
+      |> User.role_changeset(%{teacher_id: nil})
+      |> Repo.update()
+    else
+      {:error, "Only students can be removed from a teacher"}
+    end
+  end
+
   def list_students(teacher_id) do
     from(u in User, 
       where: u.role == "student" and u.teacher_id == ^teacher_id,

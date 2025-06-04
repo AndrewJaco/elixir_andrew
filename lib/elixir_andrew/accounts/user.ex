@@ -190,9 +190,6 @@ defmodule ElixirAndrew.Accounts.User do
     teacher_id = get_field(changeset, :teacher_id)
 
     case {role, teacher_id} do
-      {"student", nil} ->
-        add_error(changeset, :teacher_id, "student must have a teacher")
-
       {role, teacher_id} when (role=== "admin" or role==="teacher") and not is_nil(teacher_id) ->
         add_error(changeset, :teacher_id, "admin and teacher cannot have a teacher")
       _ ->

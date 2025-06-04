@@ -73,14 +73,16 @@ defmodule ElixirAndrewWeb.Router do
         {ElixirAndrewWeb.UserAuth, :ensure_authenticated},
         {ElixirAndrewWeb.ThemeHook, :default}
         ] do
+      # Admin routes
       live "/dashboard", Admin.DashboardLive
       live "/dashboard/students", Admin.StudentListLive
       live "/dashboard/students/:user_id", Admin.StudentEditLive, :edit
-      # live "/dashboard/students/:user_id/delete", Admin.StudentDeleteLive, :delete
       # live "/dashboard/teachers", Admin.TeacherListLive
 
-
+      # Student routes
       live "/student/home", Student.StudentHomeLive
+
+      # Registration routes
       live "/users/register", User.UserRegistrationLive, :new_student
       live "/teachers/register", User.UserRegistrationLive, :new_teacher
       live "/users/:user_id/progress/new", UserProgressLive.New, :new
@@ -100,7 +102,6 @@ scope "/", ElixirAndrewWeb do
       {ElixirAndrewWeb.ThemeHook, :default}
       ] do
       live "/users/settings", User.UserSettingsLive, :edit
-      live "/students/:user_id/settings", User.UserSettingsLive, :edit_student
   end
 end
 
