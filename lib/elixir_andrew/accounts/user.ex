@@ -16,6 +16,8 @@ defmodule ElixirAndrew.Accounts.User do
     field :theme, :string, default: "theme-default"
     field :role, :string, default: "student"
 
+    has_many :class_sessions, ElixirAndrew.ClassSession, foreign_key: :student_id
+
     belongs_to :teacher, ElixirAndrew.Accounts.User, foreign_key: :teacher_id
     has_many :students, ElixirAndrew.Accounts.User, foreign_key: :teacher_id
 
