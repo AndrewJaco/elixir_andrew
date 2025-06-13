@@ -4,6 +4,25 @@ defmodule ElixirAndrewWeb.User.UserRegistrationLive do
   alias ElixirAndrew.Accounts
   alias ElixirAndrew.Accounts.User
 
+  def mount(_params, _session, socket) do
+
+    registration_type = case socket.assigns.live_action do
+      :new_teacher ->"teacher"
+      :new_student -> "student"
+      _ -> "student"
+    end
+
+    changeset = Accounts.change_user_registration(%User{})
+
+    socket =
+      socket
+      |> assign(trigger_submit: false, check_errors: false)
+      |> assign(registration_type: registration_type)
+      |> assign_form(changeset)
+
+    {:ok, socket, temporary_assigns: [form: nil]}
+  end
+  
   def render(assigns) do
     ~H"""
     <div class="mx-auto max-w-sm">
@@ -40,24 +59,7 @@ defmodule ElixirAndrewWeb.User.UserRegistrationLive do
     """
   end
 
-  def mount(_params, _session, socket) do
-
-    registration_type = case socket.assigns.live_action do
-      :new_teacher ->"teacher"
-      :new_student -> "student"
-      _ -> "student"
-    end
-
-    changeset = Accounts.change_user_registration(%User{})
-
-    socket =
-      socket
-      |> assign(trigger_submit: false, check_errors: false)
-      |> assign(registration_type: registration_type)
-      |> assign_form(changeset)
-
-    {:ok, socket, temporary_assigns: [form: nil]}
-  end
+  
 
   def handle_event("save", %{"user" => user_params}, socket) do
     user_params = case socket.assigns.registration_type do

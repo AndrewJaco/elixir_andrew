@@ -70,6 +70,18 @@ Hooks.ThemeHandler = {
   }
 }
 
+Hooks.DatePicker = {
+  mounted() {
+    const inputId = this.el.querySelector("input[type=date]").id
+    const input = document.getElementById(inputId)
+    const overlay = this.el.querySelector("[id^=date-overlay]")
+
+    overlay.addEventListener("click", () => {
+      input.showPicker ? input.showPicker() : input.click()
+    })
+  }
+}
+
 //add event listeners for theme handling outside the hooks
 //these will work even outside the LiveView components
 window.addEventListener("phx:store_theme", (e) => {

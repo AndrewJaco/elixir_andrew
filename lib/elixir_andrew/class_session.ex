@@ -20,8 +20,8 @@ defmodule ElixirAndrew.ClassSession do
   @doc false
   def changeset(class_session, attrs) do
     class_session
-    |> cast(attrs, [:date, :lesson, :homework, :spelling_words])
-    |> validate_required([:date, :lesson, :homework, :spelling_words])
+    |> cast(attrs, [:date, :lesson, :homework, :spelling_words, :student_id])
+    |> validate_required([:date, :lesson, :homework, :spelling_words, :student_id])
   end
 
   def list_class_sessions(student_id, limit \\ 3, offset \\ 0) do
@@ -40,5 +40,21 @@ defmodule ElixirAndrew.ClassSession do
       select: count(cs.id)
     )
     |> Repo.one()
+  end
+
+  def change_class_session(class_session, attrs \\ %{}) do
+    changeset(class_session, attrs)
+  end
+
+  def create_class_session(attrs) do
+    %ClassSession{}
+    |> changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def update_class_session(class_session, attrs) do
+    class_session
+    |> changeset(attrs)
+    |> Repo.update()
   end
 end
