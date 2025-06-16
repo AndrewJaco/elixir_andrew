@@ -66,7 +66,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
             type="textarea" 
             name="lesson"
             field={@form[:lesson]}
-            class="mb-2 p-2 border border-primary rounded-md w-[200px]"
+            class="mb-2 p-2 border border-primary rounded-md"
             placeholder="Lesson"
             readonly={not @is_new}
             id={"lesson-input-#{@id}"}

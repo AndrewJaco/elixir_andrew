@@ -50,6 +50,11 @@ defmodule ElixirAndrewWeb.ThemeHook do
     {:halt, socket}
   end
 
+  defp handle_theme_info({:persist_theme, _theme}, socket) do
+    socket = assign(socket, :theme_save_timer, nil)
+    {:halt, socket}
+  end
+
   #pass through other messages
   defp handle_theme_info(_other, socket), do: {:cont, socket}
 end

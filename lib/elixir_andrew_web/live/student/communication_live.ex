@@ -19,6 +19,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationLive do
     |> assign(:has_more, length(class_sessions) < total_count)
     |> assign(:show_new_form, false)
     |> assign(:new_session, %ClassSession{student_id: student_id})
+    |> assign(:current_user, socket.assigns.current_user)
 
     {:ok, socket}
   end
@@ -31,17 +32,23 @@ defmodule ElixirAndrewWeb.Student.CommunicationLive do
           <h1 class="font-bold text-2xl"><%= display_name(@current_student) %> </h1>
           <h2>Communication Page</h2>
         </div>
-        <div class="mb-4">
-          <button 
-            phx-click="new_session" 
-            class="btn-primary btn-effect"
-            disabled={@show_new_form}
-            >
-            New Class</button>
-        </div>
-        <.link navigate={~p"/dashboard/students"} class="btn-primary btn-effect ml-auto text-center h-fit">
-          Back to Students
-        </.link>
+        <%= if @current_user.role in ["teacher", "admin"] do %>
+          <div class="mb-4">
+            <button 
+              phx-click="new_session" 
+              class="btn-primary btn-effect"
+              disabled={@show_new_form}
+              >
+              New Class</button>
+          </div>
+          <.link navigate={~p"/dashboard/students"} class="btn-primary btn-effect ml-auto text-center h-fit">
+            Back to Students
+          </.link>
+        <% else %>
+          <.link navigate={~p"/student/home"} class="btn-primary btn-effect ml-auto text-center h-fit">
+            Back to Home
+          </.link>
+        <% end %>
 
       </div>
 
@@ -55,7 +62,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationLive do
           />
         <% end %>
 
-      <ul class="justify-center flex flex-col gap-4 ">
+      <ul class="justify-center flex flex-col gap-4">
         <%= for session <- @class_sessions do %>
           <li>
             <.live_component

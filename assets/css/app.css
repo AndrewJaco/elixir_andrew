@@ -17,7 +17,6 @@
   --color-light: #F9F6E8;
   --color-dark: #272542;
   --color-accent: #911F1F;
- 
 }
 
 .theme-mc {
@@ -25,8 +24,7 @@
   --color-secondary: #926C4D;
   --color-light: #c5c2c2;
   --color-dark: #373737;
-  --color-accent: #3F76E4;
- 
+  --color-accent: #3F76E4; 
 }
 
 .theme-hk {
@@ -35,7 +33,6 @@
   --color-light: #F9F6E8;
   --color-dark: #5a5858;
   --color-accent: #095d9a;
- 
 }
 
 .theme-lg {
@@ -44,7 +41,6 @@
   --color-light: #FFFFFF;
   --color-dark: #05131D;
   --color-accent: #B40000;
-  --color-alert: #ff4646;
 }
 
 /* This file is for your main application CSS */
