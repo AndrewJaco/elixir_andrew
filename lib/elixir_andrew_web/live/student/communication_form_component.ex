@@ -31,8 +31,8 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
   def render(assigns) do
     ~H"""
     <div class={[
-    "p-4 border-2 rounded-xl w-full shadow-md flex",
-    @is_new && "border-accent" || "border-primary"
+    "py-4 px-8 border-2 rounded-xl w-full shadow-md flex w-fit",
+    @is_new && "border-accent mb-4" || "border-primary",
     ]}>
       <.form 
         for={@form}
@@ -56,7 +56,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
               <div class="absolute inset-0" id={"date-overlay-#{@id}"}></div>
             </div>
           <% else %>
-            <.input type="hidden" name="date" field={@form[:date]} id={"date-input-#{@id}"}/>
+            <input type="hidden" name="date" value={@form[:date].value} id={"date-input-#{@id}"}/>
             <div class="mb-2 p-2">
               <p><%= format_date(@form[:date].value) %></p> 
             </div>
@@ -71,7 +71,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
             readonly={not @is_new}
             id={"lesson-input-#{@id}"}
             />
-          <.label for="homework-input-#{@id}" class="mt-1">Homework</.label>
+          <.label for={"homework-input-#{@id}"} class="mt-1">Homework</.label>
           <.input
             type="textarea" 
             name="homework"
@@ -81,7 +81,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
             readonly={not @is_new}
             id={"homework-input-#{@id}"}
             />
-          <.label for="spelling-words-input-#{@id}" class="mt-1">Spelling Words</.label>
+          <.label for={"spelling-words-input-#{@id}"} class="mt-1">Spelling Words</.label>
           <.input
             type="text" 
             name="spelling_words"
@@ -93,10 +93,10 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
             />
           <%= if @is_new do %>
           <div class="flex gap-1 mt-4">
-            <.button class="bg-red-500 text-white p-2 rounded-md" phx-click="cancel-new-session" phx-target={@myself}>Cancel</.button>
-            <.button class="flex-1 bg-primary text-white p-2 rounded-md" phx-click="save" phx-target={@myself}>
+            <button class="bg-alert text-white py-2 px-4 rounded-md" phx-click="cancel-new-session" phx-target={@myself}>Cancel</button>
+            <button class="flex-1 bg-secondary rounded-md text-white" phx-click="save" phx-target={@myself}>
               Save Session
-            </.button>
+            </button>
           </div>
           <% end %>
         </div>

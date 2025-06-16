@@ -32,8 +32,17 @@ defmodule ElixirAndrewWeb.Student.CommunicationLive do
           <h2>Communication Page</h2>
         </div>
         <div class="mb-4">
-          <button phx-click="new_session" class="btn btn-primary">New Class</button>
+          <button 
+            phx-click="new_session" 
+            class="btn-primary btn-effect"
+            disabled={@show_new_form}
+            >
+            New Class</button>
         </div>
+        <.link navigate={~p"/dashboard/students"} class="btn-primary btn-effect ml-auto text-center h-fit">
+          Back to Students
+        </.link>
+
       </div>
 
         <%= if @show_new_form do %>
@@ -42,6 +51,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationLive do
             id="new_session_form"
             session={@new_session}
             is_new={true}
+            class="mb-4"
           />
         <% end %>
 
@@ -58,7 +68,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationLive do
         <% end %>
       </ul>
       <%= if @has_more do %>
-        <button phx-click="load_more" class="btn btn-primary">Load More</button>
+        <button phx-click="load_more" class="mt-4 btn-primary btn-effect">Load More</button>
       <% end %>
     </div>
     """

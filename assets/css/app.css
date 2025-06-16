@@ -8,6 +8,7 @@
   --color-light: #F9F6E8;
   --color-dark: #272542;
   --color-accent: #911F1F;
+  --color-alert: #ff4646;
 }
 
 .theme-default {
@@ -16,6 +17,7 @@
   --color-light: #F9F6E8;
   --color-dark: #272542;
   --color-accent: #911F1F;
+ 
 }
 
 .theme-mc {
@@ -24,6 +26,7 @@
   --color-light: #c5c2c2;
   --color-dark: #373737;
   --color-accent: #3F76E4;
+ 
 }
 
 .theme-hk {
@@ -32,6 +35,7 @@
   --color-light: #F9F6E8;
   --color-dark: #5a5858;
   --color-accent: #095d9a;
+ 
 }
 
 .theme-lg {
@@ -40,15 +44,11 @@
   --color-light: #FFFFFF;
   --color-dark: #05131D;
   --color-accent: #B40000;
+  --color-alert: #ff4646;
 }
 
 /* This file is for your main application CSS */
-.login-btn {
-  @apply bg-primary text-white font-bold text-xl py-12 px-20 border-8 border-accent border-solid;
-  @apply hover:bg-accent;
-}
-
-.admin-btn {
+.btn-lrg {
   @apply bg-primary text-white font-bold text-xl py-12 px-20 border-8 border-accent border-solid;
   @apply hover:bg-accent;
 }
@@ -56,4 +56,14 @@
 .edit-btn {
   @apply bg-secondary text-white text-sm py-2 px-4 border-2 border-accent border-solid;
   @apply hover:bg-accent;
+}
+
+.btn-primary {
+  @apply py-2 px-4 rounded-lg border-2 border-primary text-primary font-semibold;
+  @apply disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-300;
+}
+
+.btn-effect {
+  @apply hover:bg-primary hover:text-white hover:shadow-md active:translate-y-0.5 active:shadow-none active:opacity-90 transition-all duration-150 ease-in-out;
+  @apply disabled:opacity-60 disabled:hover:bg-gray-100 disabled:hover:text-gray-500 disabled:hover:shadow-none disabled:active:transform-none;
 }
