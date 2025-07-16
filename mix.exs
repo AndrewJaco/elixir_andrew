@@ -5,7 +5,7 @@ defmodule ElixirAndrew.MixProject do
     [
       app: :elixir_andrew,
       version: "0.1.0",
-      elixir: "~> 1.14",
+      elixir: "~> 1.18.4",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -59,7 +59,9 @@ defmodule ElixirAndrew.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:langchain, "0.3.3"},
+      {:dotenvy, "~> 1.0.0"}
     ]
   end
 

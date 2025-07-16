@@ -1,4 +1,7 @@
 import Config
+import Dotenvy
+
+ Dotenvy.source!(".env")
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
@@ -21,6 +24,7 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
+  
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
@@ -64,6 +68,9 @@ if config_env() == :prod do
       port: port
     ],
     secret_key_base: secret_key_base
+
+    #use dotenvy to load environment variables from .env file
+ 
 
   # ## SSL Support
   #
@@ -115,3 +122,6 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+config :langchain, openai_key: env!("OPENAI_API_KEY")
+config :langchain, openai_org_id: env!("OPENAI_ORG_ID")
