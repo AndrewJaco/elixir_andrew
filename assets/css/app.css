@@ -43,10 +43,9 @@
   --color-accent: #B40000;
 }
 
-/* This file is for your main application CSS */
 .btn-lrg {
-  @apply bg-primary text-white font-bold text-xl py-12 px-20 border-8 border-accent border-solid;
-  @apply hover:bg-accent;
+  @apply bg-accent text-white font-bold text-xl py-12 px-20 border-8 border-primary border-solid;
+  @apply hover:bg-primary hover:text-gray-200 hover:shadow-lg;
 }
 
 .edit-btn {

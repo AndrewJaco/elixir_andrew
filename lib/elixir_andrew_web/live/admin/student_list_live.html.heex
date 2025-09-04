@@ -1,6 +1,6 @@
-<div class={"#{@theme} flex justify-center"}>
-  <div class="mr-8">
-    <.link class="text-primary text-[50px] font-bold" href={~p"/dashboard"}>Teacher <%= @current_user.username %></.link>
+<div class={"#{@theme} flex justify-center flex-col md:flex-row"}>
+  <div class="mr-8 mb-4 md:mb-0">
+    <.link class="text-primary text-[50px] font-bold" href={~p"/dashboard"}>Teacher <%= @current_user.first_name || @current_user.username %></.link>
     <h2 class="text-primary text-3xl">Student List</h2>
   </div>
   <div class="flex flex-col gap-4 border-2 border-primary rounded-lg p-4">

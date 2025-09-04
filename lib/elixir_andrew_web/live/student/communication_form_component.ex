@@ -61,36 +61,42 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
               <p><%= format_date(@form[:date].value) %></p> 
             </div>
           <% end %>
-          <.label for={"lesson-input-#{@id}"} class="mt-2 font-xs">Today's Lesson</.label>
-          <.input
-            type="textarea" 
-            name="lesson"
-            field={@form[:lesson]}
-            class="mb-2 p-2 border border-primary rounded-md"
-            placeholder="Lesson"
-            readonly={not @is_new}
-            id={"lesson-input-#{@id}"}
-            />
-          <.label for={"homework-input-#{@id}"} class="mt-1">Homework</.label>
-          <.input
-            type="textarea" 
-            name="homework"
-            field={@form[:homework]}
-            class="mb-2 p-2 border border-primary rounded-md"
-            placeholder="Homework"
-            readonly={not @is_new}
-            id={"homework-input-#{@id}"}
-            />
-          <.label for={"spelling-words-input-#{@id}"} class="mt-1">Spelling Words</.label>
-          <.input
-            type="text" 
-            name="spelling_words"
-            field={@form[:spelling_words]}
-            class="mb-2 p-2 border border-primary rounded-md"
-            placeholder="Spelling Words (comma separated)"
-            readonly={not @is_new}
-            id={"spelling-words-input-#{@id}"}
-            />
+          <div class="mt-2">
+            <.label for={"lesson-input-#{@id}"}>Today's Lesson</.label>
+            <.input
+              type="textarea" 
+              name="lesson"
+              field={@form[:lesson]}
+              class="mb-2 p-2 border border-primary rounded-md"
+              placeholder="Lesson"
+              readonly={not @is_new}
+              id={"lesson-input-#{@id}"}
+              />
+          </div>
+          <div class="mt-1">
+            <.label for={"homework-input-#{@id}"}>Homework</.label>
+            <.input
+              type="textarea" 
+              name="homework"
+              field={@form[:homework]}
+              class="mb-2 p-2 border border-primary rounded-md"
+              placeholder="Homework"
+              readonly={not @is_new}
+              id={"homework-input-#{@id}"}
+              />
+          </div>
+          <div class="mt-2">
+            <.label for={"spelling-words-input-#{@id}"} >Spelling Words</.label>
+            <.input
+              type="text" 
+              name="spelling_words"
+              field={@form[:spelling_words]}
+              class="mb-2 p-2 border border-primary rounded-md"
+              placeholder="Spelling Words (comma separated)"
+              readonly={not @is_new}
+              id={"spelling-words-input-#{@id}"}
+              />
+          </div>
           <%= if @is_new do %>
           <div class="flex gap-1 mt-4">
             <button class="bg-alert text-white py-2 px-4 rounded-md" phx-click="cancel-new-session" phx-target={@myself}>Cancel</button>
@@ -116,15 +122,6 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, form: to_form(changeset))}
-  end
-
-  defp handle_spelling_words(params) do
-    case params["spelling_words"] do
-      nil -> params
-      words ->
-        words_list = String.split(words, ",")
-        Map.put(params, "spelling_words", words_list)
-    end
   end
 
   def handle_event("save", params, socket) do
@@ -166,6 +163,15 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
     send(self(), {:cancel_new_session})
     
     {:noreply, socket}
+  end
+
+  defp handle_spelling_words(params) do
+    case params["spelling_words"] do
+      nil -> params
+      words ->
+        words_list = String.split(words, ",")
+        Map.put(params, "spelling_words", words_list)
+    end
   end
 
   defp format_date(nil), do: ""

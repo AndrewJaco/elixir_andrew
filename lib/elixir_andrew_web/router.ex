@@ -82,6 +82,7 @@ defmodule ElixirAndrewWeb.Router do
       # Student routes
       live "/student/home", Student.StudentHomeLive
       live "/student/:student_id/communication", Student.CommunicationLive
+      live "/student/spelling", Student.SpellingLive
 
       # Registration routes
       live "/users/register", User.UserRegistrationLive, :new_student

@@ -8,7 +8,7 @@ defmodule ElixirAndrewWeb.Student.StudentHomeLive do
       user_token -> ElixirAndrew.Accounts.get_user_by_session_token(user_token)
     end
     if current_user == nil do
-      {:ok, redirect(socket, to: ~p"/login")}
+      {:ok, redirect(socket, to: ~p"/users/log_in")}
     else
       theme = current_user.theme || "theme-default"
       socket = assign(socket, current_user: current_user, theme: theme, student_id: current_user.id)
@@ -28,15 +28,20 @@ defmodule ElixirAndrewWeb.Student.StudentHomeLive do
         Here you can find lessons and homework.
       </p>
 
-      <div class="mt-6 flex justify-center">
-        <.link href={~p"/"} class="text-accent hover:underline">
-          View Lessons
-        </.link>
-        <span class="mx-2">|</span>
-        <.link href={~p"/student/#{@student_id}/communication"} class="text-accent hover:underline">
-          View Homework
-        </.link>
+      <div class="mt-6 flex flex-col justify-center">
+        <a href={~p"/student/#{@student_id}/communication"} class="text-accent hover:underline text-center">
+          My Homework
+        </a>
+        <div class="flex items-center gap-24 mt-10">
+          <.link href={~p"/student/spelling"} class="btn-lrg">
+          Spelling
+          </.link>
+          <.link href={~p"/student/chat"} class="btn-lrg">
+          Chat
+          </.link>
+        </div>
       </div>
+
     </div>
     """
   end
