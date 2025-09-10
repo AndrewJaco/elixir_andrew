@@ -57,4 +57,13 @@ defmodule ElixirAndrew.ClassSession do
     |> changeset(attrs)
     |> Repo.update()
   end
+
+  def get_last_class_with_spelling(student_id) do
+    from(cs in ClassSession,
+      where: cs.student_id == ^student_id and fragment("array_length(?, 1) > 0", cs.spelling_words),
+      order_by: [desc: cs.date],
+      limit: 1
+    )
+    |> Repo.one()
+  end
 end
