@@ -24,7 +24,7 @@
   --color-secondary: #926C4D;
   --color-light: #c5c2c2;
   --color-dark: #373737;
-  --color-accent: #3F76E4; 
+  --color-accent: #3F76E4;
 }
 
 .theme-hk {
@@ -43,8 +43,20 @@
   --color-accent: #B40000;
 }
 
+@font-face {
+  font-family: 'Minecraft';
+  src: url("/fonts/MinecraftTen-VGORe.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
 .btn-lrg {
   @apply bg-accent text-white font-bold text-xl py-12 px-20 border-8 border-primary border-solid;
+  @apply hover:bg-primary hover:text-gray-200 hover:shadow-lg;
+}
+
+.btn-guest {
+  @apply bg-accent text-white font-bold text-lg py-6 px-10 border-8 border-primary border-solid;
   @apply hover:bg-primary hover:text-gray-200 hover:shadow-lg;
 }
 

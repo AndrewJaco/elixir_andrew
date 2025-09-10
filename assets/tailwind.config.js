@@ -20,6 +20,9 @@ module.exports = {
         dark: 'var(--color-dark)',
         accent: 'var(--color-accent)',
         alert: 'var(--color-alert)',
+      },
+      fontFamily: {
+        'minecraft': ['Minecraft', 'sans-serif'],
       }
     },
   },
