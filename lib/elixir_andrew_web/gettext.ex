@@ -20,5 +20,5 @@ defmodule ElixirAndrewWeb.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext, otp_app: :elixir_andrew
+  use Gettext.Backend, otp_app: :elixir_andrew
 end

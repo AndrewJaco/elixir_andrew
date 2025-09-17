@@ -111,9 +111,9 @@ defmodule ElixirAndrewWeb.Student.CommunicationLive do
       |> assign(:show_new_form, true)}
   end
 
-  def handle_info({:session_created, session}, socket) do
-    updated_sessions = [session | socket.assigns.class_sessions]
-    |> Enum.sort_by(& &1.date, :desc)
+  def handle_info({:session_created, new_session}, socket) do
+    updated_sessions = [new_session | socket.assigns.class_sessions]
+    |> Enum.sort_by(& &1.date, {:desc, Date})
 
     {:noreply,
       socket

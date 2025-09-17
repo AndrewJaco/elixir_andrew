@@ -9,7 +9,7 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
         _ -> []
       end
 
-    {:ok, socket = assign(socket, student_id: student_id, spelling_words: spelling_words)}
+    {:ok, assign(socket, student_id: student_id, spelling_words: spelling_words)}
   end
 
   def render(assigns) do

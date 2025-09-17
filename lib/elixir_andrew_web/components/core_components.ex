@@ -17,8 +17,8 @@ defmodule ElixirAndrewWeb.CoreComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
-  import ElixirAndrewWeb.Gettext
-
+  use Gettext, backend: ElixirAndrewWeb.Gettext
+  
   @doc """
   Renders a modal.
 
