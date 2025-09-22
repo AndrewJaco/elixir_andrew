@@ -1,0 +1,80 @@
+.container {
+  perspective: 500px;
+  perspective-origin: bottom right;
+}
+
+.floating-block {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  transform-style: preserve-3d;
+  animation: float 6s ease-in-out infinite;
+  margin: auto;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.face {
+  position: absolute;
+  width: 200px;
+  height: 100px;
+  background: var(--color-primary);
+  border: 2px solid var(--color-accent);
+  box-sizing: border-box;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transform-style: preserve-3d;
+  transform: rotate3d(1, 1, 0, 20deg);
+  color: white;
+}
+
+.face.top {
+  height: 100px;
+  transform: rotateX(90deg) translateZ(-50px) translateY(-50px);
+}
+
+.face.bottom {
+  height: 100px;
+  transform: rotateX(-90deg) translateZ(-50px) translateY(50px);
+}
+
+.face.right {
+  width: 100px;
+  transform: rotateY(90deg) translateZ(150px) translateX(50px);
+}
+
+.face.left {
+  width: 100px;
+  transform: rotateY(-90deg) translateZ(50px) translateX(-50px);
+}
+
+.face.back {
+  transform: rotateY(180deg) translateZ(100px);
+}
+
+.face.front {
+  transform: rotateY(0deg);
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-cube {
+    animation: none;
+  }
+}

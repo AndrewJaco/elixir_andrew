@@ -1,5 +1,6 @@
 defmodule ElixirAndrewWeb.Student.StudentHomeLive do
   use ElixirAndrewWeb, :live_view
+  import ElixirAndrewWeb.BoxComponents
 
   def mount(_params, session, socket) do
     current_user = 
@@ -29,9 +30,9 @@ defmodule ElixirAndrewWeb.Student.StudentHomeLive do
       </p>
 
       <div class="mt-6 flex flex-col justify-center">
-        <a href={~p"/student/#{@student_id}/communication"} class="text-accent hover:underline text-center">
+        <.floating_block_link to={~p"/student/#{@student_id}/communication"}>
           My Homework
-        </a>
+        </.floating_block_link>
         <div class="flex items-center gap-24 mt-10">
           <.link href={~p"/student/spelling"} class="btn-lrg">
           Spelling
@@ -45,5 +46,4 @@ defmodule ElixirAndrewWeb.Student.StudentHomeLive do
     </div>
     """
   end
- 
 end

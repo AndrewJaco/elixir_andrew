@@ -1,6 +1,7 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+@import "./components/floating_block.css";
 
 :root {
   --color-primary: #509D96;
@@ -48,6 +49,7 @@
   src: url("/fonts/MinecraftTen-VGORe.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 .btn-lrg {
