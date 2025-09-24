@@ -1,5 +1,6 @@
 defmodule ElixirAndrewWeb.HomeLive do
   use ElixirAndrewWeb, :live_view
+  import ElixirAndrewWeb.BoxComponents
   alias ElixirAndrew.Accounts
 
   def mount(_params, session, socket) do

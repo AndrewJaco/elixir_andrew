@@ -1,15 +1,53 @@
-.container {
+.block-container {
   perspective: 500px;
   perspective-origin: bottom right;
+  transform-style: preserve-3d;
 }
 
 .floating-block {
+  --block-height: 100px;
+  --block-width: 200px;
+  --block-depth: 100px;
+  --right-face-offset: calc(var(--block-width) / 2);
+  --width-offset: calc(var(--block-width) / 2);
+  --height-offset: calc(var(--block-height) / 2);
+  --depth-offset: calc(var(--block-depth) / 2);
+
   position: relative;
-  width: 200px;
-  height: 200px;
-  transform-style: preserve-3d;
-  animation: float 6s ease-in-out infinite;
+  height: calc(var(--block-height)*1.5);
+  width: calc(var(--block-width)*1.5);
   margin: auto;
+  box-sizing: border-box;
+  transform-style: preserve-3d;
+
+  animation: float 6s ease-in-out infinite;
+  animation-play-state: running;
+}
+
+.floating-block:hover {
+  animation-play-state: paused;
+}
+
+.floating-block.small {
+  --block-height: 75px;
+  --block-width: 150px;
+  --block-depth: 75px;
+}
+
+.floating-block.lrg {
+  --block-height: 150px;
+  --block-width: 300px;
+  --block-depth: 150px;
+}
+
+.floating-block.cube {
+  --block-height: 100px;
+  --block-width: 100px;
+  --block-depth: 100px;
+}
+
+.rectangle {
+  --right-face-offset: calc(var(--block-width) * .75);
 }
 
 .clickable {
@@ -18,48 +56,73 @@
 
 .face {
   position: absolute;
-  width: 200px;
-  height: 100px;
   background: var(--color-primary);
   border: 2px solid var(--color-accent);
   box-sizing: border-box;
   opacity: 0.9;
+
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  padding: 8px;
+
   font-size: 1.5rem;
+  line-height: 1.2;
+
   transform-style: preserve-3d;
   transform: rotate3d(1, 1, 0, 20deg);
   color: white;
 }
 
+.face.top,
+.face.bottom {
+  width: var(--block-width);
+  height: var(--block-depth);
+}
+
 .face.top {
-  height: 100px;
-  transform: rotateX(90deg) translateZ(-50px) translateY(-50px);
+  transform: rotateX(90deg) translateZ(var(--height-offset));
 }
 
 .face.bottom {
-  height: 100px;
-  transform: rotateX(-90deg) translateZ(-50px) translateY(50px);
+  transform: rotateX(-90deg) translateZ(var(--height-offset));
+}
+
+.face.right,
+.face.left {
+  width: var(--block-depth);
+  height: var(--block-height);
 }
 
 .face.right {
-  width: 100px;
-  transform: rotateY(90deg) translateZ(150px) translateX(50px);
+  transform: rotateY(90deg) translateZ(var(--right-face-offset));
 }
 
 .face.left {
-  width: 100px;
-  transform: rotateY(-90deg) translateZ(50px) translateX(-50px);
+  transform: rotateY(-90deg) translateZ(var(--height-offset));
 }
 
-.face.back {
-  transform: rotateY(180deg) translateZ(100px);
+.face.back,
+.face.front {
+  width: var(--block-width);
+  height: var(--block-height);
+}
+
+.face.front>* {
+  width: 100%;
+  word-wrap: break-word;
+  text-align: center;
 }
 
 .face.front {
-  transform: rotateY(0deg);
+  transform: rotateY(0deg) translateZ(var(--depth-offset));
 }
+
+.face.back {
+  transform: rotateY(180deg) translateZ(var(--depth-offset));
+}
+
 
 @keyframes float {
 

@@ -20,8 +20,8 @@
         <h1 class="text-primary text-[50px] font-bold">Teacher <span class="font-minecraft text-[75px]">Andrew's</span> Class</h1>
       </div>
     <div class="flex flex-1 flex-col gap-6 justify-center items-center">
-      <.link href={~p"/users/log_in"} class="btn-lrg">Student</.link>
-      <.link href={~p"/"} class="btn-guest"> Guest</.link>
+      <.floating_block_link to={~p"/users/log_in"} class="lrg rectangle">Student</.floating_block_link>
+      <.floating_block_link to={~p"/"} class="cube"> Guest</.floating_block_link>
     </div>
   </div>
   <% end %>

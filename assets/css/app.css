@@ -76,3 +76,12 @@
   @apply hover:bg-primary hover:text-white hover:shadow-md active:translate-y-0.5 active:shadow-none active:opacity-90 transition-all duration-150 ease-in-out;
   @apply disabled:opacity-60 disabled:hover:bg-gray-100 disabled:hover:text-gray-500 disabled:hover:shadow-none disabled:active:transform-none;
 }
+/* 
+.transform-wrapper {
+  padding: 30px;
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+  transform-style: preserve-3d;
+}
+*/

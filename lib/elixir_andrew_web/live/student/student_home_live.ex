@@ -30,16 +30,24 @@ defmodule ElixirAndrewWeb.Student.StudentHomeLive do
       </p>
 
       <div class="mt-6 flex flex-col justify-center">
-        <.floating_block_link to={~p"/student/#{@student_id}/communication"}>
-          My Homework
-        </.floating_block_link>
-        <div class="flex items-center gap-24 mt-10">
-          <.link href={~p"/student/spelling"} class="btn-lrg">
-          Spelling
-          </.link>
-          <.link href={~p"/student/chat"} class="btn-lrg">
-          Chat
-          </.link>
+        <%!-- <div class="transform-wrapper"> --%>
+          <.floating_block_link to={~p"/student/#{@student_id}/communication"} class="rectangle small">
+            My Homework
+          </.floating_block_link>
+        <%!-- </div> --%>
+
+        <div class="flex items-center gap-24 mt-10 px-12">
+          <%!-- <div class="transform-wrapper mx-4"> --%>
+            <.floating_block_link to={~p"/student/spelling"} class="rectangle small mx-4">
+              Spelling
+            </.floating_block_link>
+          <%!-- </div> --%>
+
+          <%!-- <div class="transform-wrapper mx-4"> --%>
+            <.floating_block_link to={~p"/student/home"} class="rectangle small mx-4">
+              Chat
+            </.floating_block_link>
+          <%!-- </div> --%>
         </div>
       </div>
 
