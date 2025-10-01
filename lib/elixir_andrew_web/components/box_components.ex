@@ -50,6 +50,45 @@ defmodule ElixirAndrewWeb.BoxComponents do
     """
   end
 
+    @doc """
+  Renders a 3D floating block that acts as a link for auth full page reload.
+  
+  ## Attributes
+    * `:class` - Additional CSS classes for styling the block.
+    * `:to` - The URL to navigate to when the block is clicked.
+  ## Slots
+    * `:inner_block` - The content to be displayed inside the block.
+
+  ## Classes
+    You can pass custom classes to style the block. Some example classes:
+      * `small` - Renders a smaller block.
+      * `rectangle` - Renders a rectangular block.
+      * `lrg` - Renders a larger block.
+      * `cube` - Renders a cube-shaped block.
+
+    ## Examples
+    
+      <.floating_block_auth_link to="/some/path" class="rectangle small">
+        Click Me
+      </.floating_block_link> 
+  """
+  def floating_block_auth_link(assigns) do
+    ~H"""
+    <div class="block-container">
+      <a href={@to} class={"floating-block clickable #{@class}"}>
+        <div class="face top"></div>
+        <div class="face right"></div>
+        <div class="face bottom"></div>
+        <div class="face left"></div>
+        <div class="face back"></div>
+        <div class="face front">
+          <%= render_slot(@inner_block) %>
+        </div>
+      </a>
+    </div>
+    """
+  end
+
   @doc """
   Renders a static 3D floating block.
   ## Attributes
