@@ -5,28 +5,41 @@ defmodule ElixirAndrewWeb.ThemeHook do
 
   @debounce_delay 5000
 
-  def on_mount(:default, _params, _session, socket) do
+  def on_mount(:default, _params, session, socket) do
     
-    theme = case socket.assigns[:current_user] do 
-      %{theme: user_theme} when not is_nil(user_theme) -> user_theme
-      _ -> "theme-default"
+    theme = cond do
+      # Logged in user with theme set
+      socket.assigns[:current_user] && socket.assigns[:current_user].theme ->
+        socket.assigns.current_user.theme
+      # Theme stored in session (for guests)
+      session["theme"] ->
+        session["theme"]
+      
+      true ->
+        "theme-default"
     end
 
     socket = socket
     |> assign(:theme, theme)
     |> assign(:theme_save_timer, nil)
-    |> attach_hook(:sync_theme_from_js, :handle_event, fn
-      "sync-theme", _params, %{assigns: %{current_user: current_user}} = socket when not is_nil(current_user) ->
-        # Logged in user - ignore incoming theme and preserve DB theme
-        {:halt, socket}
-      "sync-theme", %{"theme" => theme_from_client}, socket ->
-        # Only apply for guests
-        {:halt, assign(socket, :theme, theme_from_client)}
-      _, _, socket ->
-        {:cont, socket}
+    |> attach_hook(:sync_theme_handler, :handle_event, fn
+      "sync-theme", %{"theme" => theme}, socket ->
+       if socket.assigns[:current_user] do
+          # Logged-in users: ignore client theme
+          {:halt, socket}
+        else
+          # Guests: store theme in session and update
+          {:halt, assign(socket, :theme, theme)}
+        end
+      _, _, socket -> {:cont, socket}
+    end)
+     |> attach_hook(:theme_info_handler, :handle_info, fn
+      {:theme_changed, theme}, socket -> handle_theme_info({:theme_changed, theme}, socket)
+      {:persist_theme, theme}, socket -> handle_theme_info({:persist_theme, theme}, socket)
+      _, socket -> {:cont, socket}
     end)
 
-    {:cont, socket}
+  {:cont, socket}
   end
 
   defp handle_theme_info({:theme_changed, theme}, socket) do
