@@ -5,18 +5,23 @@ defmodule ElixirAndrewWeb.ThemeHook do
 
   @debounce_delay 5000
 
-  def on_mount(:default, _params, session, socket) do
+  def on_mount(:default, _params, _session, socket) do
     
-    theme = session["theme"] || "theme-default"
+    theme = case socket.assigns[:current_user] do 
+      %{theme: user_theme} when not is_nil(user_theme) -> user_theme
+      _ -> "theme-default"
+    end
 
     socket = socket
     |> assign(:theme, theme)
     |> assign(:theme_save_timer, nil)
-    |> attach_hook(:handle_theme_changes, :handle_info, &handle_theme_info/2)
     |> attach_hook(:sync_theme_from_js, :handle_event, fn
-      "sync-theme", %{"theme" => theme}, socket ->
-        socket = assign(socket, :theme, theme)
+      "sync-theme", _params, %{assigns: %{current_user: current_user}} = socket when not is_nil(current_user) ->
+        # Logged in user - ignore incoming theme and preserve DB theme
         {:halt, socket}
+      "sync-theme", %{"theme" => theme_from_client}, socket ->
+        # Only apply for guests
+        {:halt, assign(socket, :theme, theme_from_client)}
       _, _, socket ->
         {:cont, socket}
     end)

@@ -46,28 +46,33 @@ Hooks.AutoClearFlash = {
 
 Hooks.ThemeHandler = {
   mounted() {
-    const savedTheme = localStorage.getItem("theme")
+    const isLoggedIn = document.getElementById("user-authenticated") !== null
+    if (!isLoggedIn) {
+      //only apply for guests
+      const savedTheme = localStorage.getItem("theme") || "theme-default"
+      //show the saved theme in logs for debugging
+      console.log("Applying saved theme:", savedTheme)
 
-    if (savedTheme) {
       document.documentElement.classList.remove("theme-mc", "theme-hk", "theme-lg", "theme-default")
       document.documentElement.classList.add(savedTheme)
 
-      //push theme to the server to sync with session if needed
-      if (this.el.dataset.theme !== savedTheme) {
-        // Use debouncing to avoid too many requests
-        clearTimeout(Hooks.ThemeHandler._syncTimer)
-
-        Hooks.ThemeHandler._syncTimer = setTimeout(() => {
-          this.pushEvent("sync-theme", { theme: savedTheme })
-        }, 100)
+      this.pushEvent("sync-theme", { theme: savedTheme })
+    } else {
+      //for logged in users, just apply the theme from the server
+      const serverTheme = this.el.dataset.theme;
+      if (serverTheme) {
+        document.documentElement.classList.remove("theme-mc", "theme-hk", "theme-lg", "theme-default")
+        document.documentElement.classList.add(serverTheme)
+        //update localstorage to match server theme
+        localStorage.setItem("theme", serverTheme)
       }
     }
-  },
-
-  destroyed() {
-    //clear the timer if the hook is destroyed
-    clearTimeout(Hooks.ThemeHandler._syncTimer)
   }
+
+  // destroyed() {
+  //   //clear the timer if the hook is destroyed
+  //   clearTimeout(Hooks.ThemeHandler._syncTimer)
+  // }
 }
 
 Hooks.DatePicker = {

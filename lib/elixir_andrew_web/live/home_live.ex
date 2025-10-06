@@ -1,7 +1,6 @@
 defmodule ElixirAndrewWeb.HomeLive do
   use ElixirAndrewWeb, :live_view
   import ElixirAndrewWeb.BoxComponents
-  alias ElixirAndrew.Accounts
 
   def mount(_params, _session, socket) do
     theme = case Map.get(socket.assigns, :current_user) do

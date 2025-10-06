@@ -2,7 +2,7 @@ defmodule ElixirAndrewWeb.Student.StudentHomeLive do
   use ElixirAndrewWeb, :live_view
   import ElixirAndrewWeb.BoxComponents
 
-  def mount(_params, session, socket) do
+  def mount(_params, _session, socket) do
     current_user = socket.assigns.current_user
     theme = current_user.theme || "theme-default"
     socket = assign(socket, current_user: current_user, student_id: current_user.id, theme: theme)
