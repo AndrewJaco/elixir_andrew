@@ -61,7 +61,8 @@ defmodule ElixirAndrew.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:langchain, "0.3.3"},
-      {:dotenvy, "~> 1.0.0"}
+      {:dotenvy, "~> 1.0.0"},
+      {:daisy_ui_components, "~> 0.9"}
     ]
   end
 

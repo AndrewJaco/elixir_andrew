@@ -2,6 +2,7 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "./components/floating_block.css";
+@source "../../deps/daisy_ui_components";
 
 :root {
   --color-primary: #509D96;
