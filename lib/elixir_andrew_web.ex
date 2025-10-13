@@ -84,8 +84,7 @@ defmodule ElixirAndrewWeb do
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components and translation
-      alias ElixirAndrewWeb.CoreComponents, as: CC
-      use DaisyUIComponents
+      import ElixirAndrewWeb.CoreComponents
       import ElixirAndrewWeb.Gettext
 
       # Shortcut for generating JS commands
