@@ -39,8 +39,8 @@ defmodule ElixirAndrewWeb do
   def controller do
     quote do
       use Phoenix.Controller,
-        formats: [:html, :json],
-        layouts: [html: ElixirAndrewWeb.Layouts]
+        formats: [:html, :json]
+        # layouts: [html: ElixirAndrewWeb.Layouts]
 
       import Plug.Conn
       import ElixirAndrewWeb.Gettext
@@ -89,6 +89,7 @@ defmodule ElixirAndrewWeb do
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
+      alias ElixirAndrewWeb.Layouts
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

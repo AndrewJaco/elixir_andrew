@@ -33,6 +33,7 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
         <% :welcome -> %>
           <div class="flex space-x-4 my-4 border border-solid border-2 border-primary p-4">
             <p> <%= @current_text %> </p>
+            <button phx-click="next_word" class="btn btn-primary" > Okay!</button>
           </div>
       
         <% :review -> %>
@@ -59,7 +60,7 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
             <button phx-click="start_game" class="px-4 py-2 bg-accent text-white">Start Spelling Game</button>
           </div>
       <% end %>
-
+      <progress class="progress w-56" value="50" max="100"></progress>
     </div> 
     """
   end
