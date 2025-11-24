@@ -33,12 +33,12 @@ config :elixir_andrew, ElixirAndrew.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.17.11",
+  version: "0.25.4",
   elixir_andrew: [
     args:
-      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --external:tailwindcss --alias:@=.),
     cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__), Mix.Project.build_path() => Path.expand("../deps", __DIR__)},
   ]
 
 # Configure tailwind (the version is required)

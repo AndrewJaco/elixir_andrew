@@ -1,8 +1,8 @@
 @import "tailwindcss" source(none);
+@import "./components/floating_block.css";
 @source "../css";
 @source "../js";
 @source "../../lib/elixir_andrew_web";
-@import "./components/floating_block.css";
 
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */

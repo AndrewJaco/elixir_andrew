@@ -29,22 +29,21 @@ defmodule ElixirAndrewWeb.Layouts do
       <header class="flex items-center ml-auto px-4 sm:px-6 lg:px-8">
         <div class="relative py-3">
           <button 
-            class="bg-secondary rounded-full relative" 
+            class="bg-secondary rounded-full relative border-0 outline-none focus:outline-none cursor-pointer" 
             type="button" 
             id="user-menu-button" 
-            phx-click={ElixirAndrewWeb.Layouts.toggle_dropdown_menu}
+            phx-click={JS.toggle(to: "#dropdown_menu", in: "fade-in-scale", out: "fade-out-scale")}
             >
-            <img src="/images/user-image.svg" alt="User image" class="h-8 w-8 rounded-full border-2 border-light p-1">
+            <img src="/images/user-image.svg" alt="User image" class="h-8 w-8 rounded-full border-2 border-light p-1 pointer-events-none">
           </button>
           <div 
             id="dropdown_menu" 
-            phx-click-away={ElixirAndrewWeb.Layouts.toggle_dropdown_menu}
-            class="absolute right-0 mt-2 w-48 bg-white shadow-xl shadow-secondary border border-secondary" 
-            hidden="true"
+            phx-click-away={JS.hide(to: "#dropdown_menu")}
+            class="absolute right-0 mt-2 w-48 bg-white shadow-xl shadow-secondary border border-secondary hidden" 
             >
             <%= if @current_user do %>
               <.link
-                href={ElixirAndrewWeb.Layouts.dashboard_path(@current_user)}
+                href={dashboard_path(@current_user)}
                 class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light">
                 <%= @current_user.first_name || @current_user.username %>
               </.link>
@@ -110,22 +109,21 @@ defmodule ElixirAndrewWeb.Layouts do
       <header class="flex items-center ml-auto px-4 sm:px-6 lg:px-8">
         <div class="relative py-3">
           <button 
-            class="bg-secondary rounded-full relative" 
+            class="bg-secondary rounded-full relative border-0 outline-none focus:outline-none cursor-pointer" 
             type="button" 
             id="user-menu-button" 
-            phx-click={ElixirAndrewWeb.Layouts.toggle_dropdown_menu}
+            phx-click={JS.toggle(to: "#dropdown_menu_scrollable", in: "fade-in-scale", out: "fade-out-scale")}
             >
-            <img src="/images/user-image.svg" alt="User image" class="h-8 w-8 rounded-full border-2 border-light p-1">
+            <img src="/images/user-image.svg" alt="User image" class="h-8 w-8 rounded-full border-2 border-light p-1 pointer-events-none">
           </button>
           <div 
-            id="dropdown_menu" 
-            phx-click-away={ElixirAndrewWeb.Layouts.toggle_dropdown_menu}
-            class="absolute right-0 mt-2 py-2 w-48 bg-light shadow-xl shadow-secondary border border-secondary" 
-            hidden="true"
+            id="dropdown_menu_scrollable" 
+            phx-click-away={JS.hide(to: "#dropdown_menu_scrollable")}
+            class="absolute right-0 mt-2 py-2 w-48 bg-light shadow-xl shadow-secondary border border-secondary hidden" 
             >
             <%= if @current_user do %>
               <.link
-                href={ElixirAndrewWeb.Layouts.dashboard_path(@current_user)}
+                href={dashboard_path(@current_user)}
                 class="block px-4 py-2 text-sm text-dark hover:bg-secondary hover:text-light"
                 >
                 <%= @current_user.first_name || @current_user.username %>
@@ -180,9 +178,7 @@ defmodule ElixirAndrewWeb.Layouts do
 
   def toggle_dropdown_menu do
     JS.toggle(
-      to: "#dropdown_menu",
-      in: {"transition ease-out duration-100", "transform opacity-0 translate-y-[-10%]", "transform opacity-100 translate-y-0"},
-      out: {"transition ease-in duration-75", "transform opacity-100 translate-y-0", "transform opacity-0 translate-y-[-10%]"}
+      to: "#dropdown_menu, #dropdown_menu_scrollable"
     )
   end
 

@@ -14,7 +14,7 @@
 //
 //     import "some-package"
 //
-
+import "../css/app.css"
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
@@ -22,10 +22,13 @@ import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar, { hide } from "../vendor/topbar"
 
+console.log("app.js is loading...")
+
 let Hooks = {}
 
 Hooks.AutoClearFlash = {
   mounted() {
+    console.log("AutoClearFlash hook mounted for", this.el.id)
     let ignoredIDs = ["client-error", "server-error"]
     if (ignoredIDs.includes(this.el.id)) return;
 
@@ -46,6 +49,7 @@ Hooks.AutoClearFlash = {
 
 Hooks.ThemeHandler = {
   mounted() {
+    console.log("ThemeHandler hook mounted")
     const savedTheme = localStorage.getItem("theme")
     const serverTheme = this.el.dataset.theme
 
@@ -59,6 +63,7 @@ Hooks.ThemeHandler = {
 
 Hooks.DatePicker = {
   mounted() {
+    console.log("DatePicker hook mounted for", this.el.id)
     const inputId = this.el.querySelector("input[type=date]").id
     const input = document.getElementById(inputId)
     const overlay = this.el.querySelector("[id^=date-overlay]")
@@ -69,6 +74,8 @@ Hooks.DatePicker = {
   }
 }
 
+console.log("Hooks object:", Hooks)
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
@@ -76,6 +83,7 @@ let liveSocket = new LiveSocket("/live", Socket, {
   hooks: Hooks
 })
 
+console.log("livesocket created with hooks:", liveSocket)
 
 // Show progress bar on live navigation and form submits
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" })
