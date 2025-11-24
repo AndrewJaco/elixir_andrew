@@ -29,12 +29,12 @@ defmodule ElixirAndrewWeb.Layouts do
       <header class="flex items-center ml-auto px-4 sm:px-6 lg:px-8">
         <div class="relative py-3">
           <button 
-            class="bg-secondary rounded-full relative border-0 outline-none focus:outline-none cursor-pointer" 
+            class="bg-secondary rounded-full relative border-2 border-accent outline-none focus:outline-none cursor-pointer" 
             type="button" 
             id="user-menu-button" 
             phx-click={JS.toggle(to: "#dropdown_menu", in: "fade-in-scale", out: "fade-out-scale")}
             >
-            <img src="/images/user-image.svg" alt="User image" class="h-8 w-8 rounded-full border-2 border-light p-1 pointer-events-none">
+            <img src="/images/user-image.svg" alt="User image" class="h-8 w-8 rounded-full border-0 p-1 pointer-events-none">
           </button>
           <div 
             id="dropdown_menu" 
@@ -109,12 +109,12 @@ defmodule ElixirAndrewWeb.Layouts do
       <header class="flex items-center ml-auto px-4 sm:px-6 lg:px-8">
         <div class="relative py-3">
           <button 
-            class="bg-secondary rounded-full relative border-0 outline-none focus:outline-none cursor-pointer" 
+            class="bg-secondary rounded-full relative border-2 border-accent outline-none focus:outline-none cursor-pointer" 
             type="button" 
             id="user-menu-button" 
             phx-click={JS.toggle(to: "#dropdown_menu_scrollable", in: "fade-in-scale", out: "fade-out-scale")}
             >
-            <img src="/images/user-image.svg" alt="User image" class="h-8 w-8 rounded-full border-2 border-light p-1 pointer-events-none">
+            <img src="/images/user-image.svg" alt="User image" class="h-8 w-8 rounded-full border-0 p-1 pointer-events-none">
           </button>
           <div 
             id="dropdown_menu_scrollable" 
