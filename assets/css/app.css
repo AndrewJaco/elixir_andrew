@@ -152,11 +152,11 @@
 }
 
 .theme-mc {
-  --color-primary: #637f40;
-  --color-secondary: #926C4D;
-  --color-light: #c5c2c2;
+  --color-primary: #0db50d;
+  --color-secondary: #2cc7aa;
+  --color-light: #e9ecec;
   --color-dark: #373737;
-  --color-accent: #3F76E4;
+  --color-accent: #0f800f;
 }
 
 .theme-hk {

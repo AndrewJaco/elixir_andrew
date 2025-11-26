@@ -35,7 +35,7 @@ defmodule ElixirAndrewWeb.Layouts do
       data-theme={@theme}
       >
       <header class="flex items-center ml-auto px-4 sm:px-6 lg:px-8">
-        <div class="relative py-3">
+        <div class="relative py-3 z-10">
           <button 
             class="bg-secondary rounded-full relative border-2 border-accent outline-none focus:outline-none cursor-pointer" 
             type="button" 

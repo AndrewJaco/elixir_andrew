@@ -14,7 +14,7 @@ defmodule ElixirAndrewWeb.Student.StudentHomeLive do
     <div class="mx-auto max-w-full overflow-hidden">
       <div class="text-center">
         <p class="text-3xl"><%= @current_user.first_name %> <%= @current_user.last_name %> </p>
-        <p class="text-secondary">Welcome to your student home page! </p>
+        <p class="text-accent">Welcome to your student home page! </p>
       </div>
 
       <p class="text-center">

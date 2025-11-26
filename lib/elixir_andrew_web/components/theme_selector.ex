@@ -7,7 +7,7 @@ defmodule ElixirAndrewWeb.Component.ThemeSelector do
   def render(assigns) do
     ~H"""
     <div class="pt-1 pb-4 px-4" id="theme-selector" data-theme={@theme}>
-      <form phx-change="change_theme" class="text-secondary">
+      <form phx-change="change_theme" class="text-accent">
         <label for="theme" class="block my-1 text-xs text-black">Colors</label>
         <select 
           id="theme" 
