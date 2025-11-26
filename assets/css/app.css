@@ -184,7 +184,7 @@
 }
 
 .btn-lrg {
-  @apply bg-accent text-white font-bold text-xl py-12 px-20 border-8 border-primary border-solid;
+  @apply bg-accent text-white text-center font-bold text-xl py-12 px-20 border-8 border-primary border-solid w-[350px];
   @apply hover:bg-primary hover:text-gray-200 hover:shadow-lg;
 }
 
