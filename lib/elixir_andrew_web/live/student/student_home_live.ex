@@ -6,28 +6,16 @@ defmodule ElixirAndrewWeb.Student.StudentHomeLive do
     current_user = socket.assigns.current_user
     theme = current_user.theme || "theme-default"
     socket = assign(socket, current_user: current_user, student_id: current_user.id, theme: theme)
-    {:ok, socket}
-    # current_user = 
-    # case Map.get(session, "user_token") do
-    #   nil -> nil
-    #   user_token -> ElixirAndrew.Accounts.get_user_by_session_token(user_token)
-    # end
-    # if current_user == nil do
-    #   {:ok, redirect(socket, to: ~p"/users/log_in")}
-    # else
-    #   theme = current_user.theme || "theme-default"
-    #   socket = assign(socket, current_user: current_user, theme: theme, student_id: current_user.id)
-    #   {:ok, socket}
-    # end    
+    {:ok, socket} 
   end
 
   def render(assigns) do
     ~H"""
-    <div class="mx-auto">
-      <.header class="text-center">
+    <div class="mx-auto max-w-full overflow-hidden">
+      <div class="text-center">
         <p class="text-3xl"><%= @current_user.first_name %> <%= @current_user.last_name %> </p>
         <p class="text-secondary">Welcome to your student home page! </p>
-      </.header>
+      </div>
 
       <p class="text-center">
         Here you can find lessons and homework.
@@ -40,7 +28,7 @@ defmodule ElixirAndrewWeb.Student.StudentHomeLive do
           </.floating_block_link>
         </div>
 
-        <div class="flex items-center gap-24 mt-10 px-12">
+        <div class="flex items-center gap-4 md:gap-8 lg:gap-24 mt-10 px-4 md:px-12">
           <div class="block-wrapper">
             <.floating_block_link to={~p"/student/spelling"} class="rectangle small">
               Spelling
