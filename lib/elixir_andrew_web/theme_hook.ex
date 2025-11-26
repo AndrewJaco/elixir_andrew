@@ -42,6 +42,11 @@ defmodule ElixirAndrewWeb.ThemeHook do
   {:cont, socket}
   end
 
+  def on_mount(:scrollable, _params, session, socket) do
+    {:cont, socket} = on_mount(:default, nil, session, socket)
+    {:cont, assign(socket, :scrollable, true)}
+  end
+
   defp handle_theme_info({:theme_changed, theme}, socket) do
     socket = assign(socket, :theme, theme)
 

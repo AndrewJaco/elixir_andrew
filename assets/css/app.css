@@ -15,6 +15,35 @@
   themes: false;
 }
 
+/* Force Tailwind to generate custom color utilities */
+@utility bg-light {
+  background-color: var(--color-light);
+}
+
+@utility bg-primary {
+  background-color: var(--color-primary);
+}
+
+@utility bg-dark {
+  background-color: var(--color-dark);
+}
+
+@utility text-light {
+  color: var(--color-light);
+}
+
+@utility text-primary {
+  color: var(--color-primary);
+}
+
+@utility text-dark {
+  color: var(--color-dark);
+}
+
+@utility bg-alert {
+  background-color: var(--color-alert);
+}
+
 /* daisyUI theme plugin. You can update this file by fetching the latest version with:
   curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui-theme.js
   We ship with two themes, a light one inspired on Phoenix colors and a dark one inspired

@@ -26,7 +26,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationLive do
 
   def render(assigns) do
     ~H"""
-    <div class="p-8">
+    <div class="p-8 bg-light h-fit">
       <div class="flex gap-12 mb-4">
         <div>
           <h1 class="font-bold text-2xl"><%= display_name(@current_student) %> </h1>

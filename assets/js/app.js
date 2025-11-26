@@ -28,7 +28,6 @@ let Hooks = {}
 
 Hooks.AutoClearFlash = {
   mounted() {
-    console.log("AutoClearFlash hook mounted for", this.el.id)
     let ignoredIDs = ["client-error", "server-error"]
     if (ignoredIDs.includes(this.el.id)) return;
 
@@ -49,7 +48,6 @@ Hooks.AutoClearFlash = {
 
 Hooks.ThemeHandler = {
   mounted() {
-    console.log("ThemeHandler hook mounted")
     const savedTheme = localStorage.getItem("theme")
     const serverTheme = this.el.dataset.theme
 
@@ -63,7 +61,6 @@ Hooks.ThemeHandler = {
 
 Hooks.DatePicker = {
   mounted() {
-    console.log("DatePicker hook mounted for", this.el.id)
     const inputId = this.el.querySelector("input[type=date]").id
     const input = document.getElementById(inputId)
     const overlay = this.el.querySelector("[id^=date-overlay]")
@@ -73,8 +70,6 @@ Hooks.DatePicker = {
     })
   }
 }
-
-console.log("Hooks object:", Hooks)
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {

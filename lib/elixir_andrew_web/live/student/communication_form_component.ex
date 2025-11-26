@@ -19,6 +19,13 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
       session
     end
 
+    # Format spelling words for display when not new
+    session = if !is_new && is_list(session.spelling_words) do
+      %{session | spelling_words: format_spelling_words(session.spelling_words)}
+    else
+      session
+    end
+
     changeset = ClassSession.change_class_session(session)
 
     socket = socket
@@ -31,7 +38,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
   def render(assigns) do
     ~H"""
     <div class={[
-    "py-4 px-8 border-2 rounded-xl w-full shadow-md flex w-fit",
+    "py-4 px-8 border-2 rounded-xl w-full shadow-md flex",
     @is_new && "border-accent mb-4" || "border-primary",
     ]}>
       <.form 
@@ -40,15 +47,16 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
         phx-submit="save"
         phx-change="validate"
         phx-target={@myself}
+        class="w-full"
         >
-        <div class="flex flex-col w-[600px]">
+        <div class="flex flex-col w-full">
           <%= if @is_new do %>
             <div class="relative cursor-pointer" phx-hook="DatePicker" id={"date-picker-#{@id}"}>
               <.input 
                 type="date" 
                 name="date"
                 field={@form[:date]}
-                class="mb-2 p-2 border border-primary rounded-md"
+                class="mb-2 p-2 bg-white border border-primary rounded-md"
                 placeholder="Select Date"
                 id={"date-input-#{@id}"}
                 readonly={not @is_new}
@@ -61,46 +69,66 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
               <p><%= format_date(@form[:date].value) %></p> 
             </div>
           <% end %>
-          <div class="mt-2">
-            <.label for={"lesson-input-#{@id}"}>Today's Lesson</.label>
-            <.input
-              type="textarea" 
-              name="lesson"
-              field={@form[:lesson]}
-              class="mb-2 p-2 border border-primary rounded-md"
-              placeholder="Lesson"
-              readonly={not @is_new}
-              id={"lesson-input-#{@id}"}
-              />
-          </div>
-          <div class="mt-1">
-            <.label for={"homework-input-#{@id}"}>Homework</.label>
-            <.input
-              type="textarea" 
-              name="homework"
-              field={@form[:homework]}
-              class="mb-2 p-2 border border-primary rounded-md"
-              placeholder="Homework"
-              readonly={not @is_new}
-              id={"homework-input-#{@id}"}
-              />
+          <div class="flex mt-1 gap-4"> 
+            <div class="flex-1">
+              <.label for={"lesson-input-#{@id}"} >Today's Lesson</.label>
+              <%= if @is_new do %>
+                <.input
+                  type="textarea" 
+                  name="lesson"
+                  field={@form[:lesson]}
+                  class="mb-2 p-2 bg-white border border-primary rounded-md w-full resize-none focus:ring-0 focus:outline-none min-h-[6rem] overflow-hidden"
+                  placeholder="Lesson"
+                  id={"lesson-input-#{@id}"}
+                  rows={3}
+                  />
+              <% else %>
+                <div class="mb-2 p-2 bg-white border border-primary rounded-md w-full min-h-[6rem]">
+                  <p class="whitespace-pre-wrap"><%= @form[:lesson].value %></p>
+                </div>
+              <% end %>
+            </div>
+            <div class="flex-1">
+              <.label for={"homework-input-#{@id}"}>Homework</.label>
+              <%= if @is_new do %>
+                <.input
+                  type="textarea" 
+                  name="homework"
+                  field={@form[:homework]}
+                  class="mb-2 p-2 bg-white border border-primary rounded-md w-full resize-none focus:ring-0 focus:outline-none min-h-[6rem] overflow-hidden"
+                  placeholder="Homework"
+                  id={"homework-input-#{@id}"}
+                  rows={3}
+                  />
+              <% else %>
+                <div class="mb-2 p-2 bg-white border border-primary rounded-md w-full min-h-[6rem]">
+                  <p class="whitespace-pre-wrap"><%= @form[:homework].value %></p>
+                </div>
+              <% end %>
+            </div>
           </div>
           <div class="mt-2">
             <.label for={"spelling-words-input-#{@id}"} >Spelling Words</.label>
-            <.input
-              type="text" 
-              name="spelling_words"
-              field={@form[:spelling_words]}
-              class="mb-2 p-2 border border-primary rounded-md"
-              placeholder="Spelling Words (comma separated)"
-              readonly={not @is_new}
-              id={"spelling-words-input-#{@id}"}
-              />
+            <%= if @is_new do %>
+              <.input
+                type="textarea" 
+                name="spelling_words"
+                field={@form[:spelling_words]}
+                class="mb-2 p-2 bg-white border border-primary rounded-md w-full resize-none focus:ring-0 focus:outline-none overflow-hidden"
+                placeholder="Spelling Words (comma separated)"
+                id={"spelling-words-input-#{@id}"}
+                rows={1}
+                />
+            <% else %>
+              <div class="mb-2 p-2 bg-white border border-primary rounded-md w-full">
+                <p><%= if @form[:spelling_words].value in [nil, ""], do: "see previous...", else: @form[:spelling_words].value %></p>
+              </div>
+            <% end %>
           </div>
           <%= if @is_new do %>
           <div class="flex gap-1 mt-4">
-            <button class="bg-alert text-white py-2 px-4 rounded-md" phx-click="cancel-new-session" phx-target={@myself}>Cancel</button>
-            <button class="flex-1 bg-secondary rounded-md text-white" phx-click="save" phx-target={@myself}>
+            <button class="bg-alert text-white py-2 px-4 rounded-md cursor-pointer" phx-click="cancel-new-session" phx-target={@myself}>Cancel</button>
+            <button class="flex-1 bg-secondary rounded-md text-white cursor-pointer hover:bg-primary" phx-click="save" phx-target={@myself}>
               Save Session
             </button>
           </div>
@@ -173,6 +201,12 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
         Map.put(params, "spelling_words", words_list)
     end
   end
+
+  defp format_spelling_words(nil), do: ""
+  defp format_spelling_words(words) when is_list(words) do
+    Enum.join(words, ", ")
+  end
+  defp format_spelling_words(words) when is_binary(words), do: words
 
   defp format_date(nil), do: ""
   defp format_date(date_string) when is_binary(date_string) do

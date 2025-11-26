@@ -80,8 +80,7 @@ defmodule ElixirAndrewWeb.Router do
       # live "/dashboard/teachers", Admin.TeacherListLive
 
       # Student routes
-      live "/student/home", Student.StudentHomeLive
-      live "/student/:student_id/communication", Student.CommunicationLive
+      live "/student/home", Student.StudentHomeLive 
       live "/student/spelling", Student.SpellingLive
 
       # Registration routes
@@ -92,20 +91,15 @@ defmodule ElixirAndrewWeb.Router do
       
     end
 
-  end
-  
-scope "/", ElixirAndrewWeb do
-    pipe_through [:browser, :require_authenticated_user]
-
-  live_session :scrollable_authenticated_user, 
-    layout: {ElixirAndrewWeb.Layouts, :scrollable}, 
-    on_mount: [
-      {ElixirAndrewWeb.UserAuth, :ensure_authenticated}, 
-      {ElixirAndrewWeb.ThemeHook, :default}
-      ] do
+    live_session :scrollable_authenticated_user, 
+      on_mount: [
+        {ElixirAndrewWeb.UserAuth, :ensure_authenticated}, 
+        {ElixirAndrewWeb.ThemeHook, :scrollable}
+        ] do
       live "/users/settings", User.UserSettingsLive, :edit
+      live "/student/:student_id/communication", Student.CommunicationLive
+    end
   end
-end
 
   scope "/", ElixirAndrewWeb do
     pipe_through [:browser]
