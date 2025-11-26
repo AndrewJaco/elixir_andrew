@@ -5,13 +5,13 @@ defmodule ElixirAndrewWeb.User.UserSettingsLive do
 
   def render(assigns) do
     ~H"""
-    <div class="px-32 py-4 m-12 border border-dark rounded-lg">
+    <div class="px-32 py-4 m-12 h-fit border border-dark rounded-lg">
       <.header class="text-center">
         Profile Settings
         <:subtitle>Manage your profile</:subtitle>
       </.header>
 
-      <div class="space-y-12 divide-y">
+      <div class="space-y-12">
         <div>
           <.simple_form
             for={@email_form}
@@ -19,6 +19,7 @@ defmodule ElixirAndrewWeb.User.UserSettingsLive do
             phx-submit="update_email"
             phx-change="validate_email"
           >
+            <label class="block text-lg font-medium text-gray-700 mb-1">Change Email: <span class="font-semibold"><%= @current_email %></span></label>
             <.input field={@email_form[:email]} type="email" label="Email" required />
             <.input
               field={@email_form[:current_password]}
@@ -30,7 +31,7 @@ defmodule ElixirAndrewWeb.User.UserSettingsLive do
               required
             />
             <:actions>
-              <.button phx-disable-with="Changing...">Change Email</.button>
+              <.button class="btn-settings" phx-disable-with="Changing...">Change Email</.button>
             </:actions>
           </.simple_form>
         </div>
@@ -41,6 +42,7 @@ defmodule ElixirAndrewWeb.User.UserSettingsLive do
             phx-submit="update_name"
             phx-change="validate_name"
           >
+            <label class="block text-lg font-medium text-gray-700 mb-1">Change Name: <span class="font-semibold"><%= @current_first_name %> <%= @current_last_name %></span></label>
             <.input 
               field={@name_form[:first_name]} 
               type="text" 
@@ -52,7 +54,7 @@ defmodule ElixirAndrewWeb.User.UserSettingsLive do
               label="Last Name" 
               value={@current_last_name} />
             <:actions>
-              <.button phx-disable-with="Changing...">Change Name</.button>
+              <.button class="btn-settings" phx-disable-with="Changing...">Change Name</.button>
             </:actions>
           </.simple_form>
         </div>
@@ -66,6 +68,7 @@ defmodule ElixirAndrewWeb.User.UserSettingsLive do
             phx-submit="update_password"
             phx-trigger-action={@trigger_submit}
           >
+            <label class="block text-lg font-medium text-gray-700 mb-1">Change Password for: <span class="font-semibold"><%= @current_email %></span></label>
             <input
               name={@password_form[:email].name}
               type="hidden"
@@ -88,15 +91,15 @@ defmodule ElixirAndrewWeb.User.UserSettingsLive do
               required
             />
             <:actions>
-              <.button phx-disable-with="Changing...">Change Password</.button>
+              <.button class="btn-settings" phx-disable-with="Changing...">Change Password</.button>
             </:actions>
           </.simple_form>
         </div>
-          <div class="w-full flex justify-end pt-4">
+          <div class="w-full flex justify-end p-4">
             <.link 
               href={ElixirAndrewWeb.Layouts.App.dashboard_path(@current_user)}
-              class="text-lg text-gray-600 hover:text-gray-900"
-              > Back to Lessons</.link>
+              class="btn-settings back text-lg"
+              >Back</.link>
           </div>
       </div>
     </div>

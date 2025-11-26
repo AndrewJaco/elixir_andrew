@@ -19,7 +19,7 @@ defmodule ElixirAndrewWeb.User.UserLoginLive do
           </.link>
         </:actions>
         <:actions>
-          <.button phx-disable-with="Logging in..." class="btn btn-soft btn-info w-full">
+          <.button phx-disable-with="Logging in..." class="btn-settings w-full">
             Log in <span aria-hidden="true">→</span>
           </.button>
         </:actions>

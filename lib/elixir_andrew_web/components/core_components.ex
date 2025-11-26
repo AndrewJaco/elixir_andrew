@@ -232,6 +232,7 @@ defmodule ElixirAndrewWeb.CoreComponents do
     <button
       type={@type}
       class={[
+        @class ||
         "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
         "text-sm font-semibold leading-6 text-white active:text-white/80",
         @class
@@ -378,7 +379,7 @@ defmodule ElixirAndrewWeb.CoreComponents do
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
         class={[
-          @rest[:class] || "min-w-[400px] mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
+          @rest[:class] || "min-w-[400px] mt-2 p-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 bg-white border-1 border-zinc-300",
           @errors == [] && !@rest[:class] && "border-zinc-300 focus:border-zinc-400",
           @errors != [] && !@rest[:class] && "border-rose-400 focus:border-rose-400"
         ]}
