@@ -4,7 +4,7 @@
         <:subtitle>Manage your students</:subtitle>
       </.header>
 
-      <div class="space-y-12 divide-y">
+      <div class="space-y-12">
         <div> 
           <.simple_form
             for={@name_form}
@@ -28,7 +28,7 @@
               label="Last Name" 
               />
             <:actions>
-              <.button phx-disable-with="Changing...">Change Profile</.button>
+              <.button class="btn-settings" phx-disable-with="Changing...">Change Profile</.button>
             </:actions>
           </.simple_form>
         </div>
@@ -47,7 +47,7 @@
           <div class="w-full flex justify-end pt-4">
             <.link 
               href={~p"/dashboard/students"}
-              class="text-lg text-gray-600 hover:text-gray-900"
+              class="btn-settings back"
               > Back to Student List</.link>
           </div>
       </div>

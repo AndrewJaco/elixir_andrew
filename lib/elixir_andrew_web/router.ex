@@ -74,8 +74,7 @@ defmodule ElixirAndrewWeb.Router do
         {ElixirAndrewWeb.ThemeHook, :default}
         ] do
       # Admin routes
-      live "/dashboard", Admin.DashboardLive
-      live "/dashboard/students", Admin.StudentListLive
+      live "/dashboard", Admin.DashboardLive 
       live "/dashboard/students/:user_id", Admin.StudentEditLive, :edit
       # live "/dashboard/teachers", Admin.TeacherListLive
 
@@ -97,6 +96,7 @@ defmodule ElixirAndrewWeb.Router do
         {ElixirAndrewWeb.ThemeHook, :scrollable}
         ] do
       live "/users/settings", User.UserSettingsLive, :edit
+      live "/dashboard/students", Admin.StudentListLive
       live "/student/:student_id/communication", Student.CommunicationLive
     end
   end

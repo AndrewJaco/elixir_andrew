@@ -22,7 +22,7 @@ defmodule ElixirAndrewWeb.Layouts do
   def app(assigns) do
     # Set responsive height class based on scrollable setting
     height_class = if assigns[:scrollable], do: "min-h-screen", else: "h-screen"
-    main_class = if assigns[:scrollable], do: "flex justify-center overflow-y-auto px-2 py-2", else: "flex-1 flex flex-col px-2 py-2"
+    main_class = "flex-1 flex flex-col p-4"
     dropdown_id = if assigns[:scrollable], do: "dropdown_menu_scrollable", else: "dropdown_menu"
     
     assigns = assign(assigns, height_class: height_class, main_class: main_class, dropdown_id: dropdown_id)
