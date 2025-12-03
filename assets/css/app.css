@@ -136,6 +136,13 @@
   display: contents
 }
 
+/* Touch-friendly defaults for kid-friendly app */
+html,
+body {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* This file is for your main application CSS */
 /* Custom theming colors */
 :root {
@@ -212,8 +219,23 @@
 }
 
 .btn-effect {
-  @apply hover:bg-primary hover:text-white hover:shadow-md active:translate-y-0.5 active:shadow-none active:opacity-90 transition-all duration-150 ease-in-out;
-  @apply disabled:opacity-60 disabled:hover:bg-gray-100 disabled:hover:text-gray-500 disabled:hover:shadow-none disabled:active:transform-none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  @apply hover:bg-primary hover:text-white hover:shadow-md transition-all duration-150 ease-in-out;
+  @apply disabled:opacity-60 disabled:hover:bg-gray-100 disabled:hover:text-gray-500 disabled:hover:shadow-none;
+}
+
+/* Active/pressed state for both mouse and touch */
+.btn-effect:active,
+.btn-effect.phx-click-loading {
+  transform: translateY(0.125rem);
+  box-shadow: none;
+  opacity: 0.9;
+}
+
+/* Disabled buttons shouldn't transform */
+.btn-effect:disabled:active,
+.btn-effect:disabled.phx-click-loading {
+  transform: none;
 }
 
 .btn-settings {

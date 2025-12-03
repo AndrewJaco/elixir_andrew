@@ -47,10 +47,20 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
                 <p class="text-xl font-bold"><%= @current_text %></p>
               </div>
             </div>
-            <div class="flex my-4 border border-solid border-2 border-primary p-4">
-              <button phx-click="prev_word" class="btn-primary btn-effect" disabled={@current_index == 0}>Back</button>
-              <button phx-click="toggle_pause" class="btn-primary btn-effect"><%= if @auto_advance, do: "Pause", else: "Play" %></button>
-              <button phx-click="next_word" class="btn-primary btn-effect">Next</button>
+            <div class="flex my-4 border border-solid border-2 border-primary p-4 space-x-1 rounded-full">
+              <button phx-click="prev_word" class="btn-primary btn-effect flex items-center justify-center" disabled={@current_index == 0}>
+                <.icon name="hero-chevron-left-solid" class="h-5 w-5"/>
+              </button>
+              <button phx-click="toggle_pause" class="btn-primary btn-effect flex items-center justify-center">
+                <%= if @auto_advance do %>
+                  <.icon name="hero-pause-solid" class="h-5 w-5"/>
+                <% else %>
+                  <.icon name="hero-play-solid" class="h-5 w-5"/>
+                <% end %>
+              </button>
+              <button phx-click="next_word" class="btn-primary btn-effect flex items-center justify-center">
+                <.icon name="hero-chevron-right-solid" class="h-5 w-5"/>
+              </button>
             </div>
           </div>
 
@@ -126,6 +136,7 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
       |> assign(:view_state, :review)
       |> assign(:auto_advance, true)
       |> assign(:timer_ref, nil)
+      |> schedule_advance()
 
     {:noreply, socket}
   end
@@ -154,7 +165,7 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
     if socket.assigns.timer_ref do
       Process.cancel_timer(socket.assigns.timer_ref)
     end
-    timer_ref = Process.send_after(self(), :auto_advance, 5000) # 5 seconds
+    timer_ref = Process.send_after(self(), :auto_advance, 4000) # 4 seconds
     assign(socket, timer_ref: timer_ref)
   end
 
