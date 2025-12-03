@@ -27,42 +27,65 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
 
   def render(assigns) do
     ~H"""
-    <div class="mx-auto border border-solid border-primary border-4 p-6 w-full">
-      <h2 class="text-3xl text-primary font-bold mb-4">Time to review your spelling words</h2>
+    <div class="flex-1 flex flex-col border border-solid border-accent border-4 p-8 m-4">
       <%= case @view_state do %>
         <% :welcome -> %>
-          <div class="flex space-x-4 my-4 border border-solid border-2 border-primary p-4">
-            <p> <%= @current_text %> </p>
-            <button phx-click="next_word" class="btn btn-primary" > Okay!</button>
+          <h2 class="self-center text-3xl text-dark font-bold mb-4">Time to review your spelling words</h2>
+          <div class="flex flex-col flex-1 items-center justify-center my-4 border border-solid border-2 rounded-xl border-primary p-4">
+            <p class="self-center mb-8"> <%= @current_text %> </p>
+            <button phx-click="start_review" class="btn-primary btn-effect" > Okay!</button>
           </div>
       
         <% :review -> %>
-          <div class="flex space-x-4 my-4 border border-solid border-2 border-primary p-4">
-            <p class="" >Word <%= @current_index + 1 %> / <%= length(@spelling_words) %></p>
-            <p class="text-xl font-bold"><%= @current_text %></p>
-
-              <div class="flex space-x-4 my-4 border border-solid border-2 border-primary p-4">
-                <button phx-click="prev_word" class="px-4 py-2 bg-secondary text-white" disabled={@current_index == 0}>Back</button>
-                <button phx-click="toggle_pause" class="px-4 py-2 bg-secondary text-white"><%= if @auto_advance, do: "Pause", else: "Play" %></button>
-                <button phx-click="next_word" class="px-4 py-2 bg-secondary text-white">Next</button>
+          <div class="flex flex-col flex-1 items-center space-x-4 my-4 border border-solid border-2 rounded-xl border-primary p-4">
+            <div class="flex flex-col flex-1"> 
+              <div class="flex flex-col items-center">
+                <p class="" ><%= @current_index + 1 %> / <%= length(@spelling_words) %></p>
+                <progress class="progress progress-primary rounded-full h-4 w-56" value={@current_index + 1} max={length(@spelling_words)}></progress>
               </div>
+              <div class="flex flex-col flex-1 justify-center items-center">
+                <p class="text-xl font-bold"><%= @current_text %></p>
+              </div>
+            </div>
+            <div class="flex my-4 border border-solid border-2 border-primary p-4">
+              <button phx-click="prev_word" class="btn-primary btn-effect" disabled={@current_index == 0}>Back</button>
+              <button phx-click="toggle_pause" class="btn-primary btn-effect"><%= if @auto_advance, do: "Pause", else: "Play" %></button>
+              <button phx-click="next_word" class="btn-primary btn-effect">Next</button>
+            </div>
           </div>
 
         <% :completed -> %>
-          <div class="flex space-x-4 my-4 border border-solid border-2 border-primary p-4">
-            <p> <%= @current_text %> </p>
-            <ul class="list-disc list-inside mb-6">
+          <div class="flex flex-col flex-1 my-4 border border-solid border-2 rounded-xl border-primary p-8">
+            <h2 class="flex-1 text-center text-3xl text-dark font-bold"> <%= @current_text %> </h2>
+            <ul class={[
+              "flex-3 self-center list-disc list-inside my-6",
+              cond do
+                length(@spelling_words) > 15 -> "columns-4 gap-8"
+                length(@spelling_words) > 10 -> "columns-3 gap-8"
+                length(@spelling_words) > 5 -> "columns-2 gap-8"
+                true -> ""
+              end
+            ]}>
               <%= for word <- @spelling_words do %>
                 <li class="text-xl"><%= word %></li>
               <% end %>
             </ul>
-            <button phx-click="restart" class="px-4 py-2 bg-secondary text-white">Review Again</button>
-            <button phx-click="start_game" class="px-4 py-2 bg-accent text-white">Start Spelling Game</button>
+            <div class="flex flex-col space-y-4 flex-2 mx-8">
+              <button phx-click="restart" class="flex-1 px-4 py-2 bg-secondary text-white">Review Again</button>
+              <button phx-click="start_game" class="flex-4 px-4 py-2 bg-accent text-white">Start Spelling Game</button>
+            </div>
           </div>
       <% end %>
-      <progress class="progress w-56" value="50" max="100"></progress>
     </div> 
     """
+  end
+
+  def handle_event("start_review", _value, socket) do
+    if socket.assigns.welcome_timer do
+      Process.cancel_timer(socket.assigns.welcome_timer)
+    end
+    send(self(), :start_review)
+    {:noreply, assign(socket, welcome_timer: nil)}
   end
 
   def handle_event("prev_word", _value, socket) do
@@ -150,7 +173,7 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
       if socket.assigns.timer_ref do
         Process.cancel_timer(socket.assigns.timer_ref)
       end
-      assign(socket, auto_advance: false, timer_ref: nil, current_text: "Great job! You've reviewed all your words. You can now proceed to the spelling games.", view_state: :completed)
+      assign(socket, auto_advance: false, timer_ref: nil, current_text: "Great job! You've reviewed all your words. You can now try a spelling game.", view_state: :completed)
     end
   end
 

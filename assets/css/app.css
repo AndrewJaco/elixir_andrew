@@ -207,7 +207,7 @@
 }
 
 .btn-primary {
-  @apply py-2 px-4 rounded-lg border-2 border-primary text-primary font-semibold;
+  @apply py-2 px-4 rounded-lg border-2 border-primary text-primary font-semibold cursor-pointer;
   @apply disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-300;
 }
 
