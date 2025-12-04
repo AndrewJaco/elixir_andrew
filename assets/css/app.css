@@ -214,13 +214,13 @@ body {
 }
 
 .btn-primary {
-  @apply py-2 px-4 rounded-lg border-2 border-primary text-primary font-semibold cursor-pointer;
+  @apply py-2 px-4 rounded-lg border-2 border-primary text-primary bg-light font-semibold cursor-pointer;
   @apply disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-300;
 }
 
 .btn-effect {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
-  @apply hover:bg-primary hover:text-white hover:shadow-md transition-all duration-150 ease-in-out;
+  @apply hover:bg-secondary hover:border-secondary hover:text-white hover:shadow-md transition-all duration-150 ease-in-out;
   @apply disabled:opacity-60 disabled:hover:bg-gray-100 disabled:hover:text-gray-500 disabled:hover:shadow-none;
 }
 
@@ -253,4 +253,50 @@ body {
 
 .btn-settings.back {
   background-color: var(--color-primary);
+}
+
+.gem-btn {
+  --gem-color: var(--color-primary);
+  /* default color */
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--gem-color) 0%, color-mix(in srgb, var(--gem-color) 80%, black) 100%);
+  border: 5px solid color-mix(in srgb, var(--gem-color) 80%, white);
+  border-right-color: color-mix(in srgb, var(--gem-color) 80%, white);
+  border-left-color: color-mix(in srgb, var(--gem-color) 60%, black);
+  border-top-color: color-mix(in srgb, var(--gem-color) 60%, black);
+  border-radius: 0.5rem;
+  color: white;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+.gem-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.gem-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Color variants for gem buttons */
+.gem-btn.primary {
+  --gem-color: var(--color-primary);
+}
+
+.gem-btn.secondary {
+  --gem-color: var(--color-secondary);
+}
+
+.gem-btn.accent {
+  --gem-color: var(--color-accent);
+}
+
+.gem-btn.alert {
+  --gem-color: var(--color-alert);
 }

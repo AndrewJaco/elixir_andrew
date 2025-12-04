@@ -18,6 +18,8 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
       |> assign(:timer_ref, nil)
       |> assign(:auto_advance, true)
       |> assign(:view_state, :welcome)
+      |> assign(:timer_progress, 0)
+      |> assign(:progress_timer_ref, nil)
 
       welcome_timer = Process.send_after(self(), :start_review, 5000)
       socket = assign(socket, :welcome_timer, welcome_timer)
@@ -32,7 +34,7 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
         <% :welcome -> %>
           <h2 class="self-center text-3xl text-dark font-bold mb-4">Time to review your spelling words</h2>
           <div class="flex flex-col flex-1 items-center justify-center my-4 border border-solid border-2 rounded-xl border-primary p-4">
-            <p class="self-center mb-8"> <%= @current_text %> </p>
+            <p class="mb-8 text-2xl font-semibold"> <%= @current_text %> </p>
             <button phx-click="start_review" class="btn-primary btn-effect" > Okay!</button>
           </div>
       
@@ -40,27 +42,30 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
           <div class="flex flex-col flex-1 items-center space-x-4 my-4 border border-solid border-2 rounded-xl border-primary p-4">
             <div class="flex flex-col flex-1"> 
               <div class="flex flex-col items-center">
-                <p class="" ><%= @current_index + 1 %> / <%= length(@spelling_words) %></p>
+                <p class="text-sm mb-2" ><%= @current_index + 1 %> / <%= length(@spelling_words) %></p>
                 <progress class="progress progress-primary rounded-full h-4 w-56" value={@current_index + 1} max={length(@spelling_words)}></progress>
               </div>
               <div class="flex flex-col flex-1 justify-center items-center">
-                <p class="text-xl font-bold"><%= @current_text %></p>
+                <p class="text-3xl font-semibold"><%= @current_text %></p>
               </div>
             </div>
-            <div class="flex my-4 border border-solid border-2 border-primary p-4 space-x-1 rounded-full">
-              <button phx-click="prev_word" class="btn-primary btn-effect flex items-center justify-center" disabled={@current_index == 0}>
-                <.icon name="hero-chevron-left-solid" class="h-5 w-5"/>
-              </button>
-              <button phx-click="toggle_pause" class="btn-primary btn-effect flex items-center justify-center">
-                <%= if @auto_advance do %>
-                  <.icon name="hero-pause-solid" class="h-5 w-5"/>
-                <% else %>
-                  <.icon name="hero-play-solid" class="h-5 w-5"/>
-                <% end %>
-              </button>
-              <button phx-click="next_word" class="btn-primary btn-effect flex items-center justify-center">
-                <.icon name="hero-chevron-right-solid" class="h-5 w-5"/>
-              </button>
+            <div class="my-4 border border-solid border-2 border-primary p-4 rounded-full relative">
+              <progress class="progress progress-primary rounded-full h-full absolute left-0 top-0 z-1" style="transition: value 0.5s ease-in-out;" value={if @auto_advance, do: @timer_progress, else: 0} max="100"></progress>
+              <div class="flex space-x-4 relative z-10">
+                <button phx-click="prev_word" class="btn-primary btn-effect flex items-center justify-center" disabled={@current_index == 0}>
+                  <.icon name="hero-chevron-left-solid" class="h-5 w-5"/>
+                </button>
+                <button phx-click="toggle_pause" class="btn-primary btn-effect flex items-center justify-center">
+                  <%= if @auto_advance do %>
+                    <.icon name="hero-pause-solid" class="h-5 w-5"/>
+                  <% else %>
+                    <.icon name="hero-play-solid" class="h-5 w-5"/>
+                  <% end %>
+                </button>
+                <button phx-click="next_word" class="btn-primary btn-effect flex items-center justify-center">
+                  <.icon name="hero-chevron-right-solid" class="h-5 w-5"/>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -81,8 +86,8 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
               <% end %>
             </ul>
             <div class="flex flex-col space-y-4 flex-2 mx-8">
-              <button phx-click="restart" class="flex-1 px-4 py-2 bg-secondary text-white">Review Again</button>
-              <button phx-click="start_game" class="flex-4 px-4 py-2 bg-accent text-white">Start Spelling Game</button>
+              <button phx-click="restart" class="flex-1 px-4 py-2 bg-secondary text-white gem-btn secondary">Review Again</button>
+              <button phx-click="start_game" class="flex-4 px-4 py-2 bg-accent text-white gem-btn accent">Start Spelling Game</button>
             </div>
           </div>
       <% end %>
@@ -99,6 +104,9 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
   end
 
   def handle_event("prev_word", _value, socket) do
+    # Cancel timers when manually navigating
+    socket = cancel_timers(socket)
+    
     current_index = max(0, socket.assigns.current_index - 1)
     current_word = Enum.at(socket.assigns.spelling_words, current_index)
 
@@ -106,6 +114,8 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
   end
 
   def handle_event("next_word", _value, socket) do
+    # Cancel timers when manually navigating
+    socket = cancel_timers(socket)
     socket = advance_word(socket)
     {:noreply, socket}
   end
@@ -113,10 +123,8 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
   def handle_event("toggle_pause", _value, socket) do
     if socket.assigns.auto_advance do
       # Pause
-      if socket.assigns.timer_ref do
-        Process.cancel_timer(socket.assigns.timer_ref)
-      end
-      {:noreply, assign(socket, auto_advance: false, timer_ref: nil)}
+      socket = cancel_timers(socket)
+      {:noreply, assign(socket, auto_advance: false)}
     else
       # Play
       socket = schedule_advance(socket)
@@ -152,39 +160,82 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
   end
 
   def handle_info(:auto_advance, socket) do
-    socket = advance_word(socket)
-    if socket.assigns.current_index < length(socket.assigns.spelling_words) - 1 and socket.assigns.auto_advance do
-      socket = schedule_advance(socket)
-      {:noreply, socket}
+    # Check if we're at the last word before advancing
+    if socket.assigns.current_index >= length(socket.assigns.spelling_words) - 1 do
+      # Already on last word, transition to completed
+      socket = cancel_timers(socket)
+      {:noreply, assign(socket, auto_advance: false, current_text: "Great job! You've reviewed all your words. You can now try a spelling game.", view_state: :completed)}
     else
-      {:noreply, assign(socket, auto_advance: false, timer_ref: nil)}
+      # Advance to next word
+      socket = advance_word(socket)
+      
+      # Schedule next advance if not at the last word now
+      if socket.assigns.current_index < length(socket.assigns.spelling_words) - 1 and socket.assigns.auto_advance do
+        socket = schedule_advance(socket)
+        {:noreply, socket}
+      else
+        # Just moved to the last word, schedule timer for it
+        socket = schedule_advance(socket)
+        {:noreply, socket}
+      end
+    end
+  end
+
+  def handle_info(:update_timer_progress, socket) do
+    new_progress = min(socket.assigns.timer_progress + 2, 100) # Increment by 2% (50 updates * 2% = 100%)
+    
+    socket = assign(socket, timer_progress: new_progress)
+    
+    # Schedule next update if not at 100%
+    if new_progress < 100 and socket.assigns.auto_advance do
+      progress_timer_ref = Process.send_after(self(), :update_timer_progress, 80) # 80ms * 50 = 4000ms
+      {:noreply, assign(socket, progress_timer_ref: progress_timer_ref)}
+    else
+      {:noreply, socket}
     end
   end
 
   def schedule_advance(socket) do
+    # Cancel existing timers
     if socket.assigns.timer_ref do
       Process.cancel_timer(socket.assigns.timer_ref)
     end
+    if socket.assigns.progress_timer_ref do
+      Process.cancel_timer(socket.assigns.progress_timer_ref)
+    end
+    
+    # Schedule auto-advance
     timer_ref = Process.send_after(self(), :auto_advance, 4000) # 4 seconds
-    assign(socket, timer_ref: timer_ref)
+    
+    # Reset and start progress timer
+    progress_timer_ref = Process.send_after(self(), :update_timer_progress, 80) # Start updating progress
+    
+    socket
+    |> assign(timer_ref: timer_ref)
+    |> assign(progress_timer_ref: progress_timer_ref)
+    |> assign(timer_progress: 0)
+  end
+
+  defp cancel_timers(socket) do
+    if socket.assigns.timer_ref do
+      Process.cancel_timer(socket.assigns.timer_ref)
+    end
+    if socket.assigns.progress_timer_ref do
+      Process.cancel_timer(socket.assigns.progress_timer_ref)
+    end
+    assign(socket, timer_ref: nil, progress_timer_ref: nil)
   end
 
   defp advance_word(socket) do
-    if socket.assigns.current_index < length(socket.assigns.spelling_words) - 1 do
-      current_index = socket.assigns.current_index + 1
-      current_word = Enum.at(socket.assigns.spelling_words, current_index)
-      socket = assign(socket, current_index: current_index, current_word: current_word, current_text: current_word)
-      if socket.assigns.auto_advance do
-        schedule_advance(socket)
-      else
-        assign(socket, timer_ref: nil)
-      end
+    current_index = socket.assigns.current_index + 1
+    current_word = Enum.at(socket.assigns.spelling_words, current_index)
+    socket = assign(socket, current_index: current_index, current_word: current_word, current_text: current_word)
+    
+    # Only schedule advance if auto_advance is on and we're not at the last word
+    if socket.assigns.auto_advance and current_index < length(socket.assigns.spelling_words) - 1 do
+      schedule_advance(socket)
     else
-      # Reached the end of the words
-      if socket.assigns.timer_ref do
-        Process.cancel_timer(socket.assigns.timer_ref)
-      end
-      assign(socket, auto_advance: false, timer_ref: nil, current_text: "Great job! You've reviewed all your words. You can now try a spelling game.", view_state: :completed)
+      socket
     end
   end
 
