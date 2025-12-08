@@ -9,7 +9,7 @@ defmodule ElixirAndrew.Progress.UserProgress do
     field :book, :string
     field :unit, :integer
     field :reading_question_index, :integer
-    field :game, :integer
+    field :game, {:array, :integer}, default: []
     field :prev_tutor, :integer
     field :sleeping_tutor, :integer
     belongs_to :user, ElixirAndrew.Accounts.User

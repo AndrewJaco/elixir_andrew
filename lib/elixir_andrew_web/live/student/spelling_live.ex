@@ -8,6 +8,7 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
         %{spelling_words: words} -> words
         _ -> []
       end
+    # Todo: get last spelling games from user, send to the spellinggame.ex module to pick next game
 
       socket = socket
       |> assign(:student_id, student_id)
@@ -147,6 +148,19 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
       |> schedule_advance()
 
     {:noreply, socket}
+  end
+
+  def handle_event("start_game", _params, socket) do
+    game_type = SpellingGames.select_game(
+      socket.assigns.student_id,
+      socket.assigns.spelling_words
+    )
+    
+    {:noreply, 
+      push_navigate(socket, 
+        to: ~p"/students/#{socket.assigns.student_id}/spelling-game/#{game_type}"
+      )
+    }
   end
 
   def handle_info(:start_review, socket) do
