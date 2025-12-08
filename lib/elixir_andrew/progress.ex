@@ -38,6 +38,24 @@ defmodule ElixirAndrew.Progress do
   def get_user_progress!(id), do: Repo.get!(UserProgress, id)
 
   @doc """
+  Gets user progress by user_id.
+
+  Returns nil if no progress exists for the user.
+
+  ## Examples
+
+      iex> get_user_progress("user-id-123")
+      %UserProgress{}
+
+      iex> get_user_progress("non-existent")
+      nil
+
+  """
+  def get_user_progress(user_id) do
+    Repo.get_by(UserProgress, user_id: user_id)
+  end
+
+  @doc """
   Creates a user_progress.
 
   ## Examples

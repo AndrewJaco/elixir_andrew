@@ -1,4 +1,4 @@
-defmodule ElixirAndrewWeb.Student.SpellingLive do
+defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
   use ElixirAndrewWeb, :live_view
 
   def mount(_params, _session, socket) do
@@ -8,7 +8,11 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
         %{spelling_words: words} -> words
         _ -> []
       end
-    # Todo: get last spelling games from user, send to the spellinggame.ex module to pick next game
+    user_progress = ElixirAndrew.Progress.get_user_progress(student_id)
+    game_history = if user_progress, do: user_progress.game || [], else: []
+    
+    IO.inspect(user_progress, label: "User progress for #{student_id}")
+    IO.inspect(game_history, label: "Game history")
 
       socket = socket
       |> assign(:student_id, student_id)
@@ -16,6 +20,7 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
       |> assign(:current_index, -1)
       |> assign(:current_word, List.first(spelling_words))
       |> assign(:current_text, "Review first!")
+      |> assign(:game_history, game_history)
       |> assign(:timer_ref, nil)
       |> assign(:auto_advance, true)
       |> assign(:view_state, :welcome)
@@ -151,14 +156,14 @@ defmodule ElixirAndrewWeb.Student.SpellingLive do
   end
 
   def handle_event("start_game", _params, socket) do
-    game_type = SpellingGames.select_game(
-      socket.assigns.student_id,
-      socket.assigns.spelling_words
+    game_type = ElixirAndrew.SpellingGames.select_game(
+      socket.assigns.game_history,
+      "spelling"
     )
     
     {:noreply, 
       push_navigate(socket, 
-        to: ~p"/students/#{socket.assigns.student_id}/spelling-game/#{game_type}"
+        to: ~p"/student/spelling-games/#{game_type}"
       )
     }
   end
