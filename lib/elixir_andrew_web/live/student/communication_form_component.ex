@@ -197,7 +197,11 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
     case params["spelling_words"] do
       nil -> params
       words ->
-        words_list = String.split(words, ",")
+        words_list = 
+          words
+          |> String.split(",")
+          |> Enum.map(&String.trim/1)
+          |> Enum.reject(&(&1 == ""))
         Map.put(params, "spelling_words", words_list)
     end
   end

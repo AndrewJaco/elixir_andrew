@@ -3,20 +3,17 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
 
   def mount(_params, _session, socket) do
     student_id = socket.assigns.current_user.id
-    spelling_words =
-      case ElixirAndrew.ClassSession.get_last_class_with_spelling(student_id) do
-        %{spelling_words: words} -> words
-        _ -> []
-      end
+    spelling_words = socket.assigns.spelling_words
+    
     user_progress = ElixirAndrew.Progress.get_user_progress(student_id)
     game_history = if user_progress, do: user_progress.game || [], else: []
     
     IO.inspect(user_progress, label: "User progress for #{student_id}")
     IO.inspect(game_history, label: "Game history")
+    IO.inspect(spelling_words, label: "Spelling words for review")
 
       socket = socket
       |> assign(:student_id, student_id)
-      |> assign(:spelling_words, spelling_words)
       |> assign(:current_index, -1)
       |> assign(:current_word, List.first(spelling_words))
       |> assign(:current_text, "Review first!")
@@ -97,6 +94,16 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
             </div>
           </div>
       <% end %>
+      <div>
+              <a href={"/student/spelling_games/hangman"} class="text-sm text-accent underline">Debug: Hangman</a>
+              <a href={"/student/spelling_games/flashcards"} class="ml-4 text-sm text-accent underline">Debug: Flashcards</a>
+              <a href={"/student/spelling_games/matching"} class="ml-4 text-sm text-accent underline">Debug: Matching</a>
+              <a href={"/student/spelling_games/word_search"} class="ml-4 text-sm text-accent underline">Debug: Word Search</a>
+              <a href={"/student/spelling_games/crossword"} class="ml-4 text-sm text-accent underline">Debug: Crossword</a>
+              <a href={"/student/spelling_games/unscramble"} class="ml-4 text-sm text-accent underline">Debug: Unscramble</a>
+              <a href={"/student/spelling_games/catch_it"} class="ml-4 text-sm text-accent underline">Debug: Catch It</a>
+
+      </div>
     </div> 
     """
   end
@@ -163,7 +170,7 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
     
     {:noreply, 
       push_navigate(socket, 
-        to: "/student/spelling-games/#{game_type}"
+        to: "/student/spelling_games/#{game_type}"
       )
     }
   end

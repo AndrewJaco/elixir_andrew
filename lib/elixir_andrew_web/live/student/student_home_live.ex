@@ -30,7 +30,7 @@ defmodule ElixirAndrewWeb.Student.StudentHomeLive do
 
         <div class="flex items-center gap-4 md:gap-8 lg:gap-24 mt-10 px-4 md:px-12">
           <div class="block-wrapper">
-            <.floating_block_link to={~p"/student/spelling-review"} class="rectangle small">
+            <.floating_block_link to={~p"/student/spelling_review"} class="rectangle small">
               Spelling
             </.floating_block_link>
           </div>

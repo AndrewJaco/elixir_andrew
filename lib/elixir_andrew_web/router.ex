@@ -80,23 +80,33 @@ defmodule ElixirAndrewWeb.Router do
 
       # Student routes
       live "/student/home", Student.StudentHomeLive 
-      live "/student/spelling-review", Student.SpellingReviewLive
       
-      # Spelling games
-      live "/student/spelling-games/flashcards", Student.SpellingGames.FlashcardsLive
-      live "/student/spelling-games/word_search", Student.SpellingGames.WordSearchLive
-      live "/student/spelling-games/matching", Student.SpellingGames.MatchingLive
-      live "/student/spelling-games/unscramble", Student.SpellingGames.UnscrambleLive
-      live "/student/spelling-games/hangman", Student.SpellingGames.HangmanLive
-      live "/student/spelling-games/crossword", Student.SpellingGames.CrosswordLive
-      live "/student/spelling-games/catch_it", Student.SpellingGames.CatchItLive
-
       # Registration routes
       live "/users/register", User.UserRegistrationLive, :new_student
       live "/teachers/register", User.UserRegistrationLive, :new_teacher
       live "/users/:user_id/progress/new", UserProgressLive.New, :new
       live "/users/settings/confirm_email/:token", User.UserSettingsLive, :confirm_email
       
+    end
+
+    # Spelling session - loads spelling words once for review + games
+    live_session :spelling_session,
+      on_mount: [
+        {ElixirAndrewWeb.UserAuth, :ensure_authenticated},
+        {ElixirAndrewWeb.ThemeHook, :default},
+        {ElixirAndrewWeb.SpellingSessionHook, :default}
+      ] do
+      
+      live "/student/spelling_review", Student.SpellingReviewLive
+      
+      # Spelling games
+      live "/student/spelling_games/flashcards", Student.SpellingGames.FlashcardsLive
+      live "/student/spelling_games/word_search", Student.SpellingGames.WordSearchLive
+      live "/student/spelling_games/matching", Student.SpellingGames.MatchingLive
+      live "/student/spelling_games/unscramble", Student.SpellingGames.UnscrambleLive
+      live "/student/spelling_games/hangman", Student.SpellingGames.HangmanLive
+      live "/student/spelling_games/crossword", Student.SpellingGames.CrosswordLive
+      live "/student/spelling_games/catch_it", Student.SpellingGames.CatchItLive
     end
 
     live_session :scrollable_authenticated_user, 
