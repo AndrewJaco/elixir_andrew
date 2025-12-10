@@ -163,7 +163,7 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
     
     {:noreply, 
       push_navigate(socket, 
-        to: ~p"/student/spelling-games/#{game_type}"
+        to: "/student/spelling-games/#{game_type}"
       )
     }
   end
@@ -182,8 +182,8 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
     # Check if we're at the last word before advancing
     if socket.assigns.current_index >= length(socket.assigns.spelling_words) - 1 do
       # Already on last word, transition to completed
-      socket = cancel_timers(socket)
-      {:noreply, assign(socket, auto_advance: false, current_text: "Great job! You've reviewed all your words. You can now try a spelling game.", view_state: :completed)}
+      socket = set_completed(socket)
+      {:noreply, socket}
     else
       # Advance to next word
       socket = advance_word(socket)
@@ -247,15 +247,26 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
 
   defp advance_word(socket) do
     current_index = socket.assigns.current_index + 1
-    current_word = Enum.at(socket.assigns.spelling_words, current_index)
-    socket = assign(socket, current_index: current_index, current_word: current_word, current_text: current_word)
     
-    # Only schedule advance if auto_advance is on and we're not at the last word
-    if socket.assigns.auto_advance and current_index < length(socket.assigns.spelling_words) - 1 do
-      schedule_advance(socket)
+    # Check if we've gone past the last word
+    if current_index >= length(socket.assigns.spelling_words) do
+      set_completed(socket)
     else
-      socket
+      current_word = Enum.at(socket.assigns.spelling_words, current_index)
+      socket = assign(socket, current_index: current_index, current_word: current_word, current_text: current_word)
+      
+      # Schedule advance if auto_advance is on and we're not on the last word
+      if socket.assigns.auto_advance and current_index <= length(socket.assigns.spelling_words) - 1 do
+        schedule_advance(socket)
+      else
+        socket
+      end  
     end
+  end
+
+  defp set_completed(socket) do
+    cancel_timers(socket)
+    assign(socket, auto_advance: false, current_text: "Great job! You've reviewed all your words. You can now try a spelling game.", view_state: :completed)
   end
 
 end

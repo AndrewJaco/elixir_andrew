@@ -84,12 +84,12 @@ defmodule ElixirAndrewWeb.Router do
       
       # Spelling games
       live "/student/spelling-games/flashcards", Student.SpellingGames.FlashcardsLive
-      live "/student/spelling-games/word-search", Student.SpellingGames.WordSearchLive
+      live "/student/spelling-games/word_search", Student.SpellingGames.WordSearchLive
       live "/student/spelling-games/matching", Student.SpellingGames.MatchingLive
       live "/student/spelling-games/unscramble", Student.SpellingGames.UnscrambleLive
       live "/student/spelling-games/hangman", Student.SpellingGames.HangmanLive
       live "/student/spelling-games/crossword", Student.SpellingGames.CrosswordLive
-      live "/student/spelling-games/catch-it", Student.SpellingGames.CatchItLive
+      live "/student/spelling-games/catch_it", Student.SpellingGames.CatchItLive
 
       # Registration routes
       live "/users/register", User.UserRegistrationLive, :new_student
