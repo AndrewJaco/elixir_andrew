@@ -14,28 +14,94 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.HangmanLive do
 
   defp initialize_game(socket) do
     spelling_words = socket.assigns.spelling_words
-    |> Enum.shuffle()
-
-    IO.inspect(spelling_words, label: "Hangman shuffled spelling words")
-
-    # create a list of all letters of the alphabet
-    alphabet = Enum.to_list(?a..?z) |> Enum.map(&<<&1>>)
 
     socket 
-    |> assign(:name, "Hangman")
     |> assign(:spelling_words, spelling_words)
-    |> assign(:correct_guesses, [])
-    |> assign(:incorrect_guesses, [])
+    |> assign(:guessed_letters, MapSet.new())
+    |> assign(:correct_letters, MapSet.new())
+    |> assign(:incorrect_letters, MapSet.new())
     |> assign(:max_incorrect_guesses, 6)
-    |> assign(:current_word, nil)
-    |> assign(:game_over, false)
+    |> assign(:current_word, hd(spelling_words))
+    |> assign(:game_state, :intro) # :intro, :in_round, :round_success, :round_fail, :game_over
   end
 
-  def render(assigns) do
-    ~H"""
-    <div class="hangman-game">
-      <h1><%= @name %></h1>
-    </div>
-    """
+  def handle_event("guess_letter", %{"letter" => letter}, socket) do
+    IO.inspect(letter, label: "Guessed letter")
+    
+    letter = String.downcase(letter)
+
+    socket = 
+      if MapSet.member?(socket.assigns.guessed_letters, letter) do
+        socket
+      else
+        current_word = String.downcase(socket.assigns.current_word)
+        guessed_letters = MapSet.put(socket.assigns.guessed_letters, letter)
+
+        if String.contains?(current_word, letter) do
+          correct_letters = MapSet.put(socket.assigns.correct_letters, letter)
+          assign(socket, guessed_letters: guessed_letters, correct_letters: correct_letters)
+        else
+          incorrect_letters = MapSet.put(socket.assigns.incorrect_letters, letter)
+          assign(socket, guessed_letters: guessed_letters, incorrect_letters: incorrect_letters)
+        end
+      end
+    
+    check_round_over(socket)
   end
+
+  def handle_event("start_game", _params, socket) do
+    {:noreply, assign(socket, game_state: :in_round)}
+  end
+
+  defp check_round_over(socket) do
+    current_word = String.downcase(socket.assigns.current_word)
+    # Get letters only (exclude spaces and non-letter characters)
+    current_word_letters = 
+      current_word 
+      |> String.graphemes() 
+      |> Enum.reject(&(&1 == " "))
+      |> MapSet.new()
+    
+    if MapSet.subset?(current_word_letters, socket.assigns.correct_letters) do
+      # Word guessed correctly
+      Process.send_after(self(), :start_next_word, 2000)
+      {:noreply, assign(socket, game_state: :round_success)}
+    else
+      if MapSet.size(socket.assigns.incorrect_letters) >= socket.assigns.max_incorrect_guesses do
+        # Too many incorrect guesses - add word back to end of list
+        updated_words = socket.assigns.spelling_words ++ [socket.assigns.current_word]
+        Process.send_after(self(), :start_next_word, 2000)
+        {:noreply, assign(socket, game_state: :round_fail, spelling_words: updated_words)}
+      else
+        {:noreply, socket}
+      end
+    end
+  end
+
+  def handle_info(:start_next_word, socket) do
+    remaining_words = tl(socket.assigns.spelling_words)
+
+    if remaining_words == [] do
+      {:noreply, assign(socket, game_state: :game_over)}
+    else
+      next_word = hd(remaining_words)
+      {:noreply, 
+        socket
+        |> assign(:current_word, next_word)
+        |> assign(:spelling_words, remaining_words)
+        |> assign(:guessed_letters, MapSet.new())
+        |> assign(:correct_letters, MapSet.new())
+        |> assign(:incorrect_letters, MapSet.new())
+        |> assign(:game_state, :in_round)
+      }
+    end
+  end
+  
+  # TODO: Function to display each line of the hangman current word
+  # Each letter of current word is mapped over and displayed as an underscore
+  # Underscores display from left to right as if being written with a pencil
+  
+  # defp render_underscores(socket) do
+  #   
+  # end
 end
