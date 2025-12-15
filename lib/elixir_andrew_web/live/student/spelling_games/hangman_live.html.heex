@@ -33,36 +33,71 @@
 
   <%= if @game_state == :intro do %>
     <div class="flex-1 flex flex-col justify-center items-center">
-      <h2 class="text-2xl font-bold mb-4">Welcome to Hangman!</h2>
-      <button class="btn-lrg" phx-click="start_game">Start Round</button>
+      <h2 class="text-3xl font-bold mb-2">Spell It</h2>
+      <p class="mb-6">You have <span class="text-accent font-bold">6</span> tries!</p>
+      <button class="btn-primary btn-effect cursor-pointer" phx-click="start_game">First Word</button>
     </div>
   <% end %>
 
-  <p><%= @current_word %></p>
-  <%= if @game_state == :in_round do %>
-  <div class="flex-1 flex justify-center items-center">
+  <%!-- <p><%= @current_word %></p> #for debug only --%>
 
-    <div class="flex gap-2">
+  
+    
+  <%= if @game_state == :round_success do %>
+    <div class="text-center text-green-600 font-bold text-2xl mt-4 relative">
+      <p class="absolute top-0 left-0 right-0">Congratulations! You guessed the word "<%= @current_word %>" correctly!</p>
+    </div>
+  <% end %>
+
+  <%= if @game_state == :round_fail do %>
+    <div class="flex items-center justify-center text-center text-red-600 font-bold text-2xl mt-4 relative">
+      <p class="mb-4 absolute top-0 center-self">Sorry, you've run out of tries.</p>
+    </div>
+  <% end %>
+
+  <%= if @game_state in [:in_round, :round_fail, :round_success] do %>
+  <div class="flex-1 flex flex-col justify-center items-center gap-4">
+    <div class="flex flex-wrap gap-2 justify-center">
       <%= for letter <- String.graphemes(@current_word) do %>
         <% 
           letter_lower = String.downcase(letter)
-          letter_class = cond do
-            letter == " " -> "w-4" # Spaces in multi-word spelling words
-            MapSet.member?(@correct_letters, letter_lower) -> "w-12 h-16 flex items-center justify-center border-b-4 border-gray-400"
-            true -> "w-12 h-16 flex items-center justify-center border-b-4 border-gray-400 masked-letter"
+          is_space = letter == " "
+          letter_class = cond do 
+            is_space -> "" 
+            MapSet.member?(@correct_letters, letter_lower) -> "w-12 h-16 flex items-center justify-center unmasked"
+            @game_state == :round_fail -> "text-red-600 w-12 h-16 flex items-center justify-center unmasked"
+            true -> "w-12 h-16 flex items-center justify-center masked-letter"
           end 
+          underscore_class = cond do
+            is_space -> "" 
+            MapSet.member?(@correct_letters, letter_lower) -> "border-t-4 border-gray-400 w-12 h-16"
+            true -> "border-t-4 border-gray-400 w-12 h-16"
+          end
         %>
-        <div class={"font-bold text-xl #{letter_class}"}>
-          <%= if letter != " ", do: letter_lower %>
-        </div>
-      <% end %>     
+        <%= if is_space do %>
+          <div class="basis-full h-0"></div>
+        <% else %>
+          <div class="relative">
+            <p class={"font-bold font-comicneue text-xl #{letter_class}"}><%= letter_lower %></p>
+            <div class={underscore_class}></div>
+          </div>
+        <% end %>
+      <% end %> 
     </div>
+    <div class="h-12">
+      <%= if @game_state == :round_fail do %>
+        <button class="btn-primary btn-effect cursor-pointer" phx-click="start_next_word">Next Word</button>
+      <% end %>
+    </div>   
   </div>
   <% end %>
-  
-  <%= if @game_state == :round_success do %>
-    <div class="flex-1 text-center text-green-600 font-bold text-2xl mt-4">
-      <p>Congratulations! You guessed the word "<%= @current_word %>" correctly!</p>
+
+  <%= if @game_state == :game_over do %>
+  <% success_message = Enum.random(["Well done!", "Great job!", "Awesome!", "Fantastic!", "You did it!", "Congrats!", "Phenomenal!", "Way to go!"]) %>
+    <div class="flex-1 flex flex-col justify-center items-center">
+      <h2 class="text-3xl font-bold mb-2"><%= success_message %></h2>
+      <p class="mb-6">You've finished all the words!</p>
+      <.link navigate={~p"/student/home"} class="btn-primary btn-effect cursor-pointer">Back</.link>
     </div>
   <% end %>
 
@@ -71,20 +106,19 @@
       <% letter_str = <<letter>> %>
         <% 
           button_class = cond do
-            MapSet.member?(@correct_letters, letter_str) -> "border border-2 border-green-500 font-bold rounded p-2"
-            MapSet.member?(@incorrect_letters, letter_str) -> "border border-2 border-red-500 font-bold rounded p-2"
-            true -> "border border-2 border-gray-200 bg-gray-200 font-bold rounded p-2 hover:bg-gray-300 hover:border-gray-300"
+            MapSet.member?(@correct_letters, letter_str) -> "border-green-500 text-black"
+            MapSet.member?(@incorrect_letters, letter_str) -> "border-red-500 text-black"
+            true -> "text-white border-accent bg-accent hover:bg-primary hover:border-primary disabled:hover:bg-accent disabled:hover:border-accent disabled:cursor-not-allowed"
           end 
         %>
         <button
-          class={"p-3 rounded-lg #{button_class}"}
+          class={"p-3 border border-2 rounded-lg font-comicneue font-bold text-xl cursor-pointer  #{button_class}"}
           phx-click="guess_letter"
           phx-value-letter={letter_str}
-          disabled={MapSet.member?(@guessed_letters, letter_str)}>
+          disabled={@game_state != :in_round || MapSet.member?(@guessed_letters, letter_str)}>
           <%= String.downcase(letter_str) %>
         </button>
     <% end %>
   </div>
-
 
 </div>  

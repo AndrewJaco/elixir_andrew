@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Schoolbell&display=swap');
 @import "tailwindcss" source(none);
 @import "./components/floating_block.css";
 @source "../css";
@@ -134,6 +135,14 @@
 [data-phx-session],
 [data-phx-teleported-src] {
   display: contents
+}
+
+@theme {
+  --font-sans: 'Roboto', sans-serif;
+  --font-schoolbell: 'Schoolbell', cursive;
+  --font-comicneue: 'Comic Neue', sans-serif;
+  --font-notosans: 'Noto Sans', sans-serif;
+  --font-roboto: 'Roboto', sans-serif;
 }
 
 /* Touch-friendly defaults for kid-friendly app */
@@ -292,17 +301,6 @@ body {
   }
 }
 
-@keyframes confetti-fall {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translateY(100vh) rotate(720deg);
-    opacity: 0;
-  }
-}
 
 .confetti-container {
   position: fixed;
@@ -323,6 +321,18 @@ body {
   left: calc(var(--i) * 3.33%);
   animation: confetti-fall 1s ease-in forwards;
   animation-delay: calc(var(--i) * 0.05s);
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
 }
 
 .confetti:nth-child(5n+1) {
@@ -410,4 +420,20 @@ body {
   height: 100%;
   background-color: var(--color-light);
   z-index: 1;
+}
+
+.unmasked {
+  animation: pop-in 0.25s ease forwards;
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

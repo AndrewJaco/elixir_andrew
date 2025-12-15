@@ -53,6 +53,10 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.HangmanLive do
     {:noreply, assign(socket, game_state: :in_round)}
   end
 
+  def handle_event("start_next_word", _params, socket) do
+    advance_to_next_word(socket)
+  end
+
   defp check_round_over(socket) do
     current_word = String.downcase(socket.assigns.current_word)
     # Get letters only (exclude spaces and non-letter characters)
@@ -70,7 +74,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.HangmanLive do
       if MapSet.size(socket.assigns.incorrect_letters) >= socket.assigns.max_incorrect_guesses do
         # Too many incorrect guesses - add word back to end of list
         updated_words = socket.assigns.spelling_words ++ [socket.assigns.current_word]
-        Process.send_after(self(), :start_next_word, 2000)
+        # Process.send_after(self(), :start_next_word, 5000)
         {:noreply, assign(socket, game_state: :round_fail, spelling_words: updated_words)}
       else
         {:noreply, socket}
@@ -79,10 +83,14 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.HangmanLive do
   end
 
   def handle_info(:start_next_word, socket) do
+    advance_to_next_word(socket)
+  end
+
+  defp advance_to_next_word(socket) do
     remaining_words = tl(socket.assigns.spelling_words)
 
     if remaining_words == [] do
-      {:noreply, assign(socket, game_state: :game_over)}
+      {:noreply, assign(socket, game_state: :game_over, current_word: nil, incorrect_letters: MapSet.new(), correct_letters: MapSet.new(), guessed_letters: MapSet.new())}
     else
       next_word = hd(remaining_words)
       {:noreply, 
