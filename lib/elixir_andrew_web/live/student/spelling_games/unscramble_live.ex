@@ -14,14 +14,16 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
 
   defp initialize_game(socket) do
     spelling_words = Enum.shuffle(socket.assigns.spelling_words)
+    initial_scramble = scramble_word(hd(spelling_words))
 
     socket 
     |> assign(:spelling_words, spelling_words)
     |> assign(:current_word, hd(spelling_words))
-    |> assign(:scrambled_word, scramble_word(hd(spelling_words)))
-    |> assign(:guessed_word, [])
+    |> assign(:scrambled_word, initial_scramble)
+    |> assign(:original_scrambled_letters, initial_scramble)
     |> assign(:max_attempts, 2)
     |> assign(:attempts, 0)
+    |> assign(:container_id, 0)
     |> assign(:game_state, :intro) # :intro, :in_round, :round_success, :round_fail, :game_over
   end
 
@@ -35,14 +37,39 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
 
       <%= if @game_state == :in_round || @game_state == :round_success || @game_state == :round_fail do %>
         <div class="flex flex-col items-center justify-center">
-          <div class="flex gap-4 mb-16" phx-hook="Sortable" id="scramble-container" phx-update="ignore">
+          <%= if @game_state == :round_success do %>
+            <div class="text-center text-green-600 font-bold text-2xl mt-4 absolute top-16 left-0 right-0">
+              <p class="">Congratulations!</p>
+            </div>
+          <% end %>
+          <div 
+            class="flex gap-4 mb-16" 
+            phx-hook="Sortable" 
+            id={"scramble-container-#{@container_id}"} 
+            phx-update="ignore">
             <%= for {letter, index} <- Enum.with_index(@scrambled_word) do %>
               <div id={"letter-#{index}"} data-id={"letter-#{index}"} class="letter-block"><%= letter %></div>
             <% end %>
           </div>
           <div class="">
-            <button phx-click="guess_word" class="btn-primary btn-effect mr-4">Guess</button>
-            
+            <%= if @game_state == :in_round do %>
+            <button 
+              phx-click="guess_word" class="btn-primary btn-effect mr-4"
+            >Guess
+            </button>
+            <% end %>
+            <%= if @game_state == :round_fail do %>
+            <button
+              phx-click="restart_round" class="btn-primary btn-effect mr-4"
+            >Try Again
+            </button>
+            <% end %>
+            <%= if @game_state == :round_success do %>
+            <button
+              phx-click="start_next_word" class="btn-primary btn-effect mr-4"
+            >Next Word
+            </button>
+            <% end %>
             
             <% remaining = @max_attempts - @attempts %>
             <% lost = @attempts %>
@@ -66,6 +93,13 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
           </div>
         </div>
       <% end %>
+
+      <%= if @game_state == :game_over do %>
+        <div class="text-center">
+          <h1 class="text-2xl font-bold mb-4">You've completed all the words!</h1>
+          <button phx-click="end_game"  class="btn-primary btn-effect">Back</button>
+        </div>
+      <% end %>
     </div>
     """
   end
@@ -78,25 +112,49 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
     advance_to_next_word(socket)
   end
 
-  def handle_event("guess_word", %{"word" => guessed_word}, socket) do
-    IO.inspect(guessed_word, label: "Guessed word")
+  def handle_event("guess_word", _params, socket) do
+    guessed_word = Enum.join(socket.assigns.scrambled_word, "")
     
-    if String.downcase(guessed_word) == String.downcase(socket.assigns.current_word) do
-      {:noreply, assign(socket, game_state: :round_success)}
-    else
-      {:noreply, assign(socket, attempts: socket.assigns.attempts + 1)}
+    IO.inspect(guessed_word, label: "Guessed word")
+    IO.inspect(socket.assigns.current_word, label: "Current word")
+    
+    cond do
+      String.downcase(guessed_word) == String.downcase(socket.assigns.current_word) ->
+        {:noreply, assign(socket, game_state: :round_success)}
+      
+      socket.assigns.attempts + 1 >= socket.assigns.max_attempts ->
+        {:noreply, assign(socket, game_state: :round_fail, attempts: socket.assigns.max_attempts)}
+      
+      true ->
+        {:noreply, assign(socket, attempts: socket.assigns.attempts + 1)}
     end
   end
 
-  def handle_event("reorder", %{"ids" => ids}, socket) do
+  def handle_event("restart_round", _params, socket) do    
+    scrambled = scramble_word(socket.assigns.current_word)
+    {:noreply, assign(socket, 
+      game_state: :in_round, 
+      scrambled_word: scrambled,
+      original_scrambled_letters: scrambled,
+      attempts: 0,
+      container_id: socket.assigns.container_id + 1
+    )}
+  end
 
+  def handle_event("reorder", %{"ids" => ids}, socket) do
     reordered_letters = 
       ids
       |> Enum.map(fn id -> String.replace_prefix(id, "letter-", "") end)
       |> Enum.map(&String.to_integer/1)
-      |> Enum.map(fn index -> Enum.at(socket.assigns.scrambled_word, index) end)
+      |> Enum.map(fn index -> Enum.at(socket.assigns.original_scrambled_letters, index) end)
 
     {:noreply, assign(socket, scrambled_word: reordered_letters)}
+  end
+
+  def handle_event("end_game", _params, socket) do
+    # database call to record game completion and game history will go here
+    
+    {:noreply, push_navigate(socket, to: ~p"/student/home")}
   end
 
   defp scramble_word(word) do
@@ -119,7 +177,9 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
         |> assign(:spelling_words, remaining_words)
         |> assign(:current_word, next_word)
         |> assign(:scrambled_word, scrambled_word)
-        |> assign(:guessed_word, [])
+        |> assign(:original_scrambled_letters, scrambled_word)
+        |> assign(:attempts, 0)
+        |> assign(:container_id, socket.assigns.container_id + 1)
         |> assign(:game_state, :in_round)
 
       {:noreply, socket}
