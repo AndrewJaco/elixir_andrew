@@ -21,6 +21,7 @@ import "phoenix_html"
 import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar, { hide } from "../vendor/topbar"
+import Sortable from "sortablejs"
 
 console.log("app.js is loading...")
 
@@ -68,6 +69,30 @@ Hooks.DatePicker = {
     overlay.addEventListener("click", () => {
       input.showPicker ? input.showPicker() : input.click()
     })
+  }
+}
+
+Hooks.Sortable = {
+  mounted() {
+    this.sortable = new Sortable(this.el, {
+      animation: 150,
+      handle: ".letter-block",
+      dragClass: "grabbed",
+      ghostClass: "opacity-50",
+      onEnd: (evt) => {
+        const orderedIds = Array.from(
+          this.el.children
+        ).map(el => el.dataset.id)
+
+        this.pushEvent("reorder", { ids: orderedIds })
+      }
+    })
+  },
+
+  destroyed() {
+    if (this.sortable) {
+      this.sortable.destroy()
+    }
   }
 }
 

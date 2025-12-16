@@ -13,7 +13,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.HangmanLive do
   end
 
   defp initialize_game(socket) do
-    spelling_words = socket.assigns.spelling_words
+    spelling_words = Enum.shuffle(socket.assigns.spelling_words)
 
     socket 
     |> assign(:spelling_words, spelling_words)
@@ -105,11 +105,4 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.HangmanLive do
     end
   end
   
-  # TODO: Function to display each line of the hangman current word
-  # Each letter of current word is mapped over and displayed as an underscore
-  # Underscores display from left to right as if being written with a pencil
-  
-  # defp render_underscores(socket) do
-  #   
-  # end
 end

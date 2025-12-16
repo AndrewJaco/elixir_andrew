@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Schoolbell&display=swap');
 @import "tailwindcss" source(none);
 @import "./components/floating_block.css";
+@import "./components/games.css";
 @source "../css";
 @source "../js";
 @source "../../lib/elixir_andrew_web";
@@ -283,111 +284,6 @@ body {
   cursor: pointer;
 }
 
-@keyframes heartbeat {
-
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  10%,
-  30% {
-    transform: scale(1.1);
-  }
-
-  20%,
-  40% {
-    transform: scale(1);
-  }
-}
-
-
-.confetti-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: hidden;
-}
-
-.confetti {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  top: -10px;
-  left: calc(var(--i) * 3.33%);
-  animation: confetti-fall 1s ease-in forwards;
-  animation-delay: calc(var(--i) * 0.05s);
-}
-
-@keyframes confetti-fall {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translateY(100vh) rotate(720deg);
-    opacity: 0;
-  }
-}
-
-.confetti:nth-child(5n+1) {
-  background: #ff6b6b;
-  width: 8px;
-  height: 8px;
-}
-
-.confetti:nth-child(5n+2) {
-  background: #4ecdc4;
-  width: 12px;
-  height: 6px;
-}
-
-.confetti:nth-child(5n+3) {
-  background: #ffe66d;
-  width: 6px;
-  height: 12px;
-}
-
-.confetti:nth-child(5n+4) {
-  background: #a8e6cf;
-  width: 10px;
-  height: 10px;
-}
-
-.confetti:nth-child(5n) {
-  background: #ff8b94;
-  width: 8px;
-  height: 12px;
-}
-
-.heart {
-  display: inline-block;
-  animation: heartbeat 1.7s ease-in-out infinite;
-}
-
-.low-heart {
-  animation: heartbeat 1.2s ease-in-out infinite;
-}
-
-.dying-heart {
-  animation: heartbeat .75s ease-in-out infinite;
-}
-
-.gem-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-}
-
-.gem-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
 /* Color variants for gem buttons */
 .gem-btn.primary {
   --gem-color: var(--color-primary);
@@ -403,37 +299,4 @@ body {
 
 .gem-btn.alert {
   --gem-color: var(--color-alert);
-}
-
-.masked-letter {
-  position: relative;
-  overflow: hidden;
-  animation: slide-up-remove 2s ease forwards;
-}
-
-.masked-letter::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-light);
-  z-index: 1;
-}
-
-.unmasked {
-  animation: pop-in 0.25s ease forwards;
-}
-
-@keyframes pop-in {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
 }
