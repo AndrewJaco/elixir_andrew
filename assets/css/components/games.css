@@ -156,3 +156,44 @@
 .letter-block.grabbed {
   cursor: grabbing !important;
 }
+
+/* Word Search Grid */
+.word-search-container {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  margin: 2rem;
+  border: 2px solid var(--color-accent);
+  border-radius: 0.5rem;
+  background-color: var(--color-light);
+}
+
+.word-search-grid {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 2px;
+  border: 2px solid var(--color-primary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background-color: white;
+  max-width: 90vmin;
+  aspect-ratio: 1;
+}
+
+.grid-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.8rem, 4vmin, 1.5rem);
+  font-weight: bold;
+  color: var(--color-dark);
+  cursor: pointer;
+  user-select: none;
+  aspect-ratio: 1;
+}
+
+.grid-cell.found {
+  color: var(--color-secondary);
+}
