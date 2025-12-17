@@ -78,6 +78,14 @@ Hooks.Sortable = {
       animation: 150,
       handle: ".letter-block",
       dragClass: "grabbed",
+
+      //Touch based options
+      delay: 200,
+      delayOnTouchOnly: true,
+      touchStartThreshold: 5,
+
+      forceFallback: true, //for mobile safari support
+
       ghostClass: "opacity-50",
       onEnd: (evt) => {
         const orderedIds = Array.from(

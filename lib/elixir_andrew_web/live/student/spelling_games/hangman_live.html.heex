@@ -35,7 +35,7 @@
     <div class="flex-1 flex flex-col justify-center items-center">
       <h2 class="text-3xl font-bold mb-2">Spell It</h2>
       <p class="mb-6">You have <span class="text-accent font-bold">6</span> tries!</p>
-      <button class="btn-primary btn-effect cursor-pointer" phx-click="start_game">First Word</button>
+      <button class="btn btn-primary" phx-click="start_game">First Word</button>
     </div>
   <% end %>
 
@@ -86,7 +86,7 @@
     </div>
     <div class="h-12">
       <%= if @game_state == :round_fail do %>
-        <button class="btn-primary btn-effect cursor-pointer" phx-click="start_next_word">Next Word</button>
+        <button class="btn btn-primary" phx-click="start_next_word">Next Word</button>
       <% end %>
     </div>   
   </div>
@@ -97,7 +97,7 @@
     <div class="flex-1 flex flex-col justify-center items-center">
       <h2 class="text-3xl font-bold mb-2"><%= success_message %></h2>
       <p class="mb-6">You've finished all the words!</p>
-      <.link navigate={~p"/student/home"} class="btn-primary btn-effect cursor-pointer">Back</.link>
+      <.link navigate={~p"/student/home"} class="btn btn-primary">Back</.link>
     </div>
   <% end %>
 
@@ -112,7 +112,7 @@
           end 
         %>
         <button
-          class={"p-3 border border-2 rounded-lg font-comicneue font-bold text-xl cursor-pointer  #{button_class}"}
+          class={"p-3 border border-2 rounded-lg font-comicneue font-bold text-xl  #{button_class}"}
           phx-click="guess_letter"
           phx-value-letter={letter_str}
           disabled={@game_state != :in_round || MapSet.member?(@guessed_letters, letter_str)}>

@@ -38,7 +38,7 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
           <h2 class="self-center text-3xl text-dark font-bold mb-4">Time to review your spelling words</h2>
           <div class="flex flex-col flex-1 items-center justify-center my-4 border border-solid border-2 rounded-xl border-primary p-4">
             <p class="mb-8 text-2xl font-semibold"> <%= @current_text %> </p>
-            <button phx-click="start_review" class="btn-primary btn-effect" > Okay!</button>
+            <button phx-click="start_review" class="btn btn-primary" > Okay!</button>
           </div>
       
         <% :review -> %>
@@ -55,17 +55,17 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
             <div class="my-4 border border-solid border-2 border-primary p-4 rounded-full relative">
               <progress class="progress progress-primary rounded-full h-full absolute left-0 top-0 z-1" style="transition: value 0.5s ease-in-out;" value={if @auto_advance, do: @timer_progress, else: 0} max="100"></progress>
               <div class="flex space-x-4 relative z-10">
-                <button phx-click="prev_word" class="btn-primary btn-effect flex items-center justify-center" disabled={@current_index == 0}>
+                <button phx-click="prev_word" class="btn btn-primary flex items-center justify-center" disabled={@current_index == 0}>
                   <.icon name="hero-chevron-left-solid" class="h-5 w-5"/>
                 </button>
-                <button phx-click="toggle_pause" class="btn-primary btn-effect flex items-center justify-center">
+                <button phx-click="toggle_pause" class="btn btn-primary flex items-center justify-center">
                   <%= if @auto_advance do %>
                     <.icon name="hero-pause-solid" class="h-5 w-5"/>
                   <% else %>
                     <.icon name="hero-play-solid" class="h-5 w-5"/>
                   <% end %>
                 </button>
-                <button phx-click="next_word" class="btn-primary btn-effect flex items-center justify-center">
+                <button phx-click="next_word" class="btn btn-primary flex items-center justify-center">
                   <.icon name="hero-chevron-right-solid" class="h-5 w-5"/>
                 </button>
               </div>

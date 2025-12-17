@@ -148,6 +148,8 @@
   background-color: var(--color-light);
   color: var(--color-primary);
   cursor: grab;
+  touch-action: none;
+  user-select: none;
 }
 
 .letter-block:active,

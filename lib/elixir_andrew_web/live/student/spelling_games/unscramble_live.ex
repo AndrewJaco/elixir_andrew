@@ -29,10 +29,10 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
 
   def render(assigns) do
     ~H"""
-    <div class="flex flex-col flex-1 items-center justify-center">
+    <div class="flex flex-col flex-1 items-center justify-center border-2 m-4 p-6 rounded-lg border-accent relative">
       <%= if @game_state == :intro do %>
-      <h1>Unscramble the spelling words!</h1>
-      <button phx-click="start_game" class="btn-primary btn-effect mt-4">Start Game</button>
+      <h1 class="font-comicneue text-4xl font-bold mb-8">Unscramble the spelling words!</h1>
+      <button phx-click="start_game" class="btn btn-primary mt-4">Start Game</button>
       <% end %>
 
       <%= if @game_state == :in_round || @game_state == :round_success || @game_state == :round_fail do %>
@@ -43,7 +43,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
             </div>
           <% end %>
           <div 
-            class="flex gap-4 mb-16" 
+            class="flex flex-wrap gap-4 mb-16 justify-center max-w-full px-4" 
             phx-hook="Sortable" 
             id={"scramble-container-#{@container_id}"} 
             phx-update="ignore">
@@ -51,25 +51,27 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
               <div id={"letter-#{index}"} data-id={"letter-#{index}"} class="letter-block"><%= letter %></div>
             <% end %>
           </div>
-          <div class="">
-            <%= if @game_state == :in_round do %>
-            <button 
-              phx-click="guess_word" class="btn-primary btn-effect mr-4"
-            >Guess
-            </button>
-            <% end %>
-            <%= if @game_state == :round_fail do %>
-            <button
-              phx-click="restart_round" class="btn-primary btn-effect mr-4"
-            >Try Again
-            </button>
-            <% end %>
-            <%= if @game_state == :round_success do %>
-            <button
-              phx-click="start_next_word" class="btn-primary btn-effect mr-4"
-            >Next Word
-            </button>
-            <% end %>
+          <div class="flex items-center gap-4">
+            <div class="w-32 flex justify-center">
+              <%= if @game_state == :in_round do %>
+              <button 
+                phx-click="guess_word" class="btn btn-primary"
+              >Guess
+              </button>
+              <% end %>
+              <%= if @game_state == :round_fail do %>
+              <button
+                phx-click="restart_round" class="btn btn-alert"
+              >Retry
+              </button>
+              <% end %>
+              <%= if @game_state == :round_success do %>
+              <button
+                phx-click="start_next_word" class="btn btn-accent"
+              >Next
+              </button>
+              <% end %>
+            </div>
             
             <% remaining = @max_attempts - @attempts %>
             <% lost = @attempts %>
@@ -97,7 +99,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
       <%= if @game_state == :game_over do %>
         <div class="text-center">
           <h1 class="text-2xl font-bold mb-4">You've completed all the words!</h1>
-          <button phx-click="end_game"  class="btn-primary btn-effect">Back</button>
+          <button phx-click="end_game"  class="btn btn-primary">Back</button>
         </div>
       <% end %>
     </div>

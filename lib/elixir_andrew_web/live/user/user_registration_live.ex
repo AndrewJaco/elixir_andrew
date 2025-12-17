@@ -52,7 +52,7 @@ defmodule ElixirAndrewWeb.User.UserRegistrationLive do
         <% end %>
 
         <:actions>
-          <.button phx-disable-with="Creating account..." class="w-full">Create account</.button>
+          <.button phx-disable-with="Creating account..." class="w-full btn-settings">Create account</.button>
         </:actions>
       </.simple_form>
     </div>

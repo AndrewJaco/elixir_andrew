@@ -36,16 +36,16 @@ defmodule ElixirAndrewWeb.Student.CommunicationLive do
           <div class="mb-4">
             <button 
               phx-click="new_session" 
-              class="btn-primary btn-effect"
+              class="btn btn-primary"
               disabled={@show_new_form}
               >
               New Class</button>
           </div>
-          <.link navigate={~p"/dashboard/students"} class="btn-primary btn-effect ml-auto text-center h-fit">
+          <.link navigate={~p"/dashboard/students"} class="btn btn-primary ml-auto text-center h-fit">
             Back to Students
           </.link>
         <% else %>
-          <.link navigate={~p"/student/home"} class="btn-primary btn-effect ml-auto text-center h-fit">
+          <.link navigate={~p"/student/home"} class="btn btn-primary ml-auto text-center h-fit">
             Back to Home
           </.link>
         <% end %>
@@ -75,7 +75,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationLive do
         <% end %>
       </ul>
       <%= if @has_more do %>
-        <button phx-click="load_more" class="mt-4 btn-primary btn-effect">Load More</button>
+        <button phx-click="load_more" class="mt-4 btn btn-primary">Load More</button>
       <% end %>
     </div>
     """

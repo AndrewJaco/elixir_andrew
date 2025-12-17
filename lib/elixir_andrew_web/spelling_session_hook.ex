@@ -1,6 +1,5 @@
 defmodule ElixirAndrewWeb.SpellingSessionHook do
   import Phoenix.Component
-  import Phoenix.LiveView
 
   def on_mount(:default, _params, _session, socket) do
     # Load spelling words once for the entire spelling session

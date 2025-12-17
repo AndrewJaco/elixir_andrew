@@ -46,8 +46,16 @@
   color: var(--color-dark);
 }
 
+@utility text-alert {
+  color: var(--color-alert);
+}
+
 @utility bg-alert {
   background-color: var(--color-alert);
+}
+
+@utility border-alert {
+  border-color: var(--color-alert);
 }
 
 /* daisyUI theme plugin. You can update this file by fetching the latest version with:
@@ -223,29 +231,86 @@ body {
   @apply hover:bg-accent;
 }
 
-.btn-primary {
-  @apply py-2 px-4 rounded-lg border-2 border-primary text-primary bg-light font-semibold cursor-pointer;
-  @apply disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-300;
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid;
+  background-color: var(--color-light);
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  transition: all 150ms ease-in-out;
 }
 
-.btn-effect {
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
-  @apply hover:bg-secondary hover:border-secondary hover:text-white hover:shadow-md transition-all duration-150 ease-in-out;
-  @apply disabled:opacity-60 disabled:hover:bg-gray-100 disabled:hover:text-gray-500 disabled:hover:shadow-none;
+.btn:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border-color: #d1d5db;
+}
+
+.btn:disabled:hover {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  box-shadow: none;
 }
 
 /* Active/pressed state for both mouse and touch */
-.btn-effect:active,
-.btn-effect.phx-click-loading {
+.btn:active,
+.btn.phx-click-loading {
   transform: translateY(0.125rem);
   box-shadow: none;
   opacity: 0.9;
 }
 
-/* Disabled buttons shouldn't transform */
-.btn-effect:disabled:active,
-.btn-effect:disabled.phx-click-loading {
+.btn:disabled:active,
+.btn:disabled.phx-click-loading {
   transform: none;
+}
+
+.btn-primary {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary);
+  color: var(--color-light);
+}
+
+.btn-accent {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.btn-accent:hover {
+  background-color: var(--color-accent);
+  color: var(--color-light);
+}
+
+.btn-secondary {
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-light);
+}
+
+.btn-alert {
+  border-color: var(--color-alert);
+  color: var(--color-alert);
+}
+
+.btn-alert:hover {
+  background-color: var(--color-alert);
+  color: var(--color-light);
 }
 
 .btn-settings {
