@@ -188,6 +188,13 @@
   border: 2px solid var(--color-primary);
   border-radius: 0.5rem;
   background-color: white;
+
+  overscroll-behavior: contain;
+}
+
+.word-search-cell {
+  touch-action: none;
+  user-select: none;
 }
 
 .game-shadow {

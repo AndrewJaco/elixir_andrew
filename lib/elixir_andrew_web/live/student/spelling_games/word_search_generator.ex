@@ -1,7 +1,7 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator do
   @grid_size 14
   defmodule Word do
-    defstruct text: "", path: [], direction: {0,0}, found: false
+    defstruct text: "", uppercase_text: "", path: [], direction: {0,0}, found: false
   end
   
   defmodule Cell do
@@ -33,7 +33,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator do
     {row_dir, col_dir} = generate_direction()
     start_row = :rand.uniform(@grid_size) - 1
     start_col = :rand.uniform(@grid_size) - 1
-    word_of_cells = Enum.map(Enum.with_index(String.graphemes(word.text)), fn {letter, index} ->
+    word_of_cells = Enum.map(Enum.with_index(String.graphemes(word.uppercase_text)), fn {letter, index} ->
       %Cell{letter: letter, row: start_row + (index * row_dir), col: start_col + (index * col_dir)}
     end)
 
@@ -47,13 +47,13 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator do
     unique_cells = if in_bounds, do: Enum.all?(word_of_cells, fn letter -> cell_available?(grid, letter) end), else: false
     
     if not in_bounds or not unique_cells do
-      IO.inspect("Retrying placement for word #{word.text}, attempts left: #{attempts_left - 1}")
+      # IO.inspect("Retrying placement for word #{word.text}, attempts left: #{attempts_left - 1}")
       try_place_word(grid, word, attempts_left - 1)
     else
       path = Enum.into(word_of_cells, [], fn letter -> {letter.row, letter.col} end)
       placed_word = %Word{word | path: path, direction: {row_dir, col_dir}}
       updated_grid = place_word_in_grid(grid, placed_word)
-      IO.inspect(word_of_cells, label: "Word of cells")
+      # IO.inspect(word_of_cells, label: "Word of cells")
     {:ok, updated_grid, placed_word} 
     end
   end
@@ -71,7 +71,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator do
 
   defp place_word_in_grid(grid, word) do
     path = word.path
-    text_chars = String.graphemes(word.text)
+    text_chars = String.graphemes(word.uppercase_text)
     
     updated_grid = Enum.reduce(Enum.with_index(path), grid, fn {{row, col}, idx}, acc_grid ->
       letter = Enum.at(text_chars, idx)
