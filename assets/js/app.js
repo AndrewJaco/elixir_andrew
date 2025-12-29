@@ -109,6 +109,7 @@ Hooks.WordSearch = {
     this.selected = []
     this.direction = null
     this.active = false
+    this.activeCell = null
 
     this.el.addEventListener("pointerdown", this.start.bind(this))
     this.el.addEventListener("pointermove", this.move.bind(this))
@@ -122,22 +123,47 @@ Hooks.WordSearch = {
     this.reset()
     this.active = true
     this.select(cell)
+    this.setActive(cell)
   },
 
   move(e) {
     if (!this.active) return
 
     const cell = this.getCellFromPoint(e)
-    if (!cell || this.isSelected(cell)) return
+    if (!cell) return
 
+    // Backtrack
+    if (this.isPrevious(cell)) {
+      const last = this.selected.pop()
+      last.classList.remove("selected")
+      this.setActive(cell)
+
+      // Unlock direction if needed
+      this.lockDirectionIfNeeded()
+
+      if (this.selected.length < 2) {
+        this.direction = null
+      }
+
+      return
+    }
+
+    // Ignore if already selected
+    if (this.isSelected(cell)) return
+
+    // Move forward
     if (this.canSelect(cell)) {
+      this.setActive(cell)
       this.select(cell)
+    } else {
+      this.animateInvalidPath()
     }
   },
 
   end(e) {
     if (!this.active) return
     this.active = false
+    this.clearActive()
 
     const path = this.selected.map(cell => ({
       row: parseInt(cell.dataset.row, 10),
@@ -145,12 +171,7 @@ Hooks.WordSearch = {
     }))
 
     this.pushEvent("check_word", { path })
-  },
-
-  reset() {
-    this.selected.forEach(c => c.classList.remove("selected"))
-    this.selected = []
-    this.direction = null
+    this.reset()
   },
 
   select(cell) {
@@ -158,15 +179,32 @@ Hooks.WordSearch = {
     this.selected.push(cell)
 
     if (this.selected.length === 2) {
-      const first = this.coords(this.selected[0])
-      const second = this.coords(this.selected[1])
-      this.direction = {
-        dr: second.row - first.row,
-        dc: second.col - first.col
-      }
+      this.lockDirectionIfNeeded()
     }
 
     if (navigator.vibrate) navigator.vibrate(10)
+  },
+
+  setActive(cell) {
+    if (this.activeCell === cell) return
+
+    this.clearActive()
+    this.activeCell = cell
+    cell.classList.add("active")
+  },
+
+  clearActive() {
+    if (this.activeCell) {
+      this.activeCell.classList.remove("active")
+      this.activeCell = null
+    }
+  },
+
+  reset() {
+    this.selected.forEach(c => c.classList.remove("selected"))
+    this.clearActive()
+    this.selected = []
+    this.direction = null
   },
 
   coords(cell) {
@@ -180,18 +218,36 @@ Hooks.WordSearch = {
     return this.selected.includes(cell)
   },
 
+  isPrevious(cell) {
+    if (this.selected.length < 2) return false
+    return this.selected.at(-2) === cell
+  },
+
+  lockDirectionIfNeeded() {
+    if (this.selected.length !== 2) return
+
+    const [a, b] = this.selected
+    const ca = this.coords(a)
+    const cb = this.coords(b)
+
+    this.direction = {
+      dr: cb.row - ca.row,
+      dc: cb.col - ca.col
+    }
+  },
+
   canSelect(cell) {
-    const next = this.coords(cell)
-    const prev = this.coords(this.selected.at(-1))
+    const last = this.selected.at(-1)
+    const from = this.coords(last)
+    const to = this.coords(cell)
 
-    if (!this.isAdjacent(prev, next)) return false
+    if (!this.isAdjacent(from, to)) return false
 
-    if (this.selected.length < 2) return true
+    if (this.direction) {
+      return this.sameDirection(from, to)
+    }
 
-    return (
-      next.row === prev.row + this.direction.dr &&
-      next.col === prev.col + this.direction.dc
-    )
+    return true
   },
 
   isAdjacent(a, b) {
@@ -200,11 +256,32 @@ Hooks.WordSearch = {
     return (dr <= 1 && dc <= 1) && !(dr === 0 && dc === 0)
   },
 
+  sameDirection(from, to) {
+    const dr = to.row - from.row
+    const dc = to.col - from.col
+    return dr === this.direction.dr && dc === this.direction.dc
+  },
+
   getCellFromPoint(e) {
     const x = e.clientX
     const y = e.clientY
     return document.elementFromPoint(x, y)?.closest(".word-search-cell")
   },
+
+  animateInvalidPath() {
+    this.selected.forEach(cell => {
+      cell.classList.add("invalid")
+
+      cell.classList.remove("invalid-animate")
+      void cell.offsetWidth //force reflow to restart animation
+      cell.classList.add("invalid-animate")
+    
+      setTimeout(() => {
+        cell.classList.remove("invalid-animate")
+        cell.classList.remove("invalid")
+      }, 130)
+    })
+  }
 }
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")

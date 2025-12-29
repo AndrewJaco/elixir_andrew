@@ -8,7 +8,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
     {:ok, socket}
   end
 
-  def initialize_game(socket) do
+  defp initialize_game(socket) do
     #change each word in the list of spelling words into a word struct
     words_for_game = Enum.shuffle(socket.assigns.spelling_words)
     |> Enum.map(fn word -> %Word{uppercase_text: word |> String.replace(" ", "") |> String.upcase(), text: word} end)
@@ -37,7 +37,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
     <%= if @game_state == :intro || @game_state == :in_round do %>
     <div class="flex flex-col lg:flex-row flex-1 border-2 m-4 p-4 rounded-lg border-accent justify-center items-center gap-8">
       <%!--grid for the game --%>
-      <div class="word-search-grid game-shadow" phx-hook="WordSearch" id="word-search-grid">
+      <div class="word-search-grid game-shadow" phx-hook="WordSearch" id="word-search-grid" style={"--grid-size: #{WordSearchGenerator.grid_size()}"}}>
         <%= for cell <- @grid do %>
           <div 
             class={"flex items-center justify-center word-search-cell" <> (if cell.found, do: " border-2 border-green-500" , else: "")} 
@@ -82,9 +82,11 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
   #check if all words are found and end game
     IO.inspect(path, label: "Selected path")
     path_tuples = Enum.map(path, fn %{"row" => row, "col" => col} -> {row, col} end)
+    reversed_path = Enum.reverse(path_tuples)
+    
     socket = 
       Enum.reduce(socket.assigns.words_for_game, socket, fn word, acc_socket ->
-        if word.path == path_tuples and not word.found do
+        if (word.path == path_tuples or word.path == reversed_path) and not word.found do
           #mark word as found
           updated_word = %Word{word | found: true}
           updated_words = Enum.map(acc_socket.assigns.words_for_game, fn w -> 
@@ -104,14 +106,19 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
         end
       end)
 
-  is_game_over?(socket)
+    is_game_over?(socket)
+  end
+
+  def handle_event("restart_game", _params, socket) do
+    socket = initialize_game(socket)
+    {:noreply, socket}
   end
 
   defp is_game_over?(socket) do
-  if Enum.any?(socket.assigns.words_for_game, fn word -> not word.found end) do
-    {:noreply, socket}
-  else
-    {:noreply, assign(socket, :game_state, :game_over)}
+    if Enum.any?(socket.assigns.words_for_game, fn word -> not word.found end) do
+      {:noreply, socket}
+    else
+      {:noreply, assign(socket, :game_state, :game_over)}
     end
   end
 

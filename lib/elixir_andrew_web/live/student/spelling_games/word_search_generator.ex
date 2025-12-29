@@ -1,5 +1,5 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator do
-  @grid_size 14
+  @grid_size 12
   defmodule Word do
     defstruct text: "", uppercase_text: "", path: [], direction: {0,0}, found: false
   end
@@ -7,6 +7,8 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator do
   defmodule Cell do
     defstruct letter: "", row: 0, col: 0, found: false
   end
+
+  def grid_size(), do: @grid_size
 
   def create_empty_grid() do
     grid_size = @grid_size
