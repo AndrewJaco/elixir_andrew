@@ -5,6 +5,8 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
 
   def mount(_params, _session, socket) do
     socket = initialize_game(socket)
+    welcome_timer = Process.send_after(self(), :start_game, 4000)
+      socket = assign(socket, :welcome_timer, welcome_timer)
     {:ok, socket}
   end
 
@@ -27,17 +29,35 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
     socket 
     # |> assign(:word_bank, word_bank)
     |> assign(:words_for_game, placed_words)
+    |> assign(:grid_2d, grid)
     |> assign(:grid, List.flatten(grid))
     |> assign(:game_state, :intro) # :intro, :in_round, :game_over
   end
 
   def render(assigns) do
     ~H"""
-    
-    <%= if @game_state == :intro || @game_state == :in_round do %>
-    <div class="flex flex-col lg:flex-row flex-1 border-2 m-4 p-4 rounded-lg border-accent justify-center items-center gap-8">
+    <%= if @game_state == :intro do %>
+      <div class="flex flex-col items-center justify-center flex-1">
+        <div id="intro-title" class="text-primary text-center">
+          <h1 class="text-4xl font-bold">Word Search</h1>
+        </div>
+        <div id="intro-instructions" class="text-accent text-center">
+          <h2 class="text-3xl">Find all the words!</h2>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if @game_state == :in_round do %>
+    <div class="wordsearch-game flex flex-col lg:flex-row flex-1 border-2 m-4 p-4 rounded-lg border-accent justify-center items-center gap-8">
       <%!--grid for the game --%>
-      <div class="word-search-grid game-shadow" phx-hook="WordSearch" id="word-search-grid" style={"--grid-size: #{WordSearchGenerator.grid_size()}"}}>
+      <div 
+        class="word-search-grid game-shadow" 
+        phx-hook="WordSearch1" 
+        id="word-search-grid" 
+        style={"--grid-size: #{WordSearchGenerator.grid_size()}"}
+        data-grid={Jason.encode!(@grid_2d)}
+        data-grid-size={WordSearchGenerator.grid_size()}
+      >
         <%= for cell <- @grid do %>
           <div 
             class={"flex items-center justify-center word-search-cell" <> (if cell.found, do: " border-2 border-green-500" , else: "")} 
@@ -111,7 +131,12 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
 
   def handle_event("restart_game", _params, socket) do
     socket = initialize_game(socket)
+    Process.send_after(self(), :start_game, 4000)
     {:noreply, socket}
+  end
+
+  def handle_info(:start_game, socket) do
+    {:noreply, assign(socket, :game_state, :in_round)}
   end
 
   defp is_game_over?(socket) do

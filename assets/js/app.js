@@ -104,6 +104,137 @@ Hooks.Sortable = {
   }
 }
 
+Hooks.WordSearch1 = {
+  mounted() {
+    this.startCell = null
+    this.currentCell = null
+    this.previewPath = []
+
+    this.el.addEventListener("pointerdown", this.start.bind(this))
+    this.el.addEventListener("pointermove", this.move.bind(this))
+    window.addEventListener("pointerup", this.end.bind(this))
+
+    // Expose to console for testing
+    window.wordSearchHook = this
+    // Quick test after window.wordSearchHook = this
+    console.log("Testing generatePath:", this.generatePath(
+      { dr: 2, dc: 0 },
+      { dataset: { row: "0", col: "0" } },
+      { dataset: { row: "3", col: "0" } }
+    ))
+
+    console.log("Test 2:", this.generatePath(
+      { dr: -1, dc: 0 },
+      { dataset: { row: "4", col: "4" } },
+      { dataset: { row: "1", col: "4" } }
+    ))
+  },
+
+  start(e) {
+    const cell = this.getCellFromPoint(e)
+    if (!cell) return
+
+    this.startCell = cell
+    this.currentCell = cell
+    // clear previous selection
+    this.previewPath = [this.coords(cell)]
+  },
+
+  move(e) {
+    if (!this.startCell) return
+
+    const hoverCell = this.getCellFromPoint(e)
+
+    if (!hoverCell || hoverCell === this.currentCell) return
+
+    // Calculate raw vector
+    const startCoords = this.coords(this.startCell)
+    const hoverCoords = this.coords(hoverCell)
+    const dr = hoverCoords.row - startCoords.row
+    const dc = hoverCoords.col - startCoords.col
+
+    // Check if it's a valid straight line (horizontal, vertical, or diagonal)
+    const isValidLine = dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)
+
+    if (!isValidLine) return // Invalid direction, don't update path
+
+    const direction = {
+      dr: Math.sign(dr),
+      dc: Math.sign(dc)
+    }
+
+    this.currentCell = hoverCell
+    this.previewPath = this.generatePath(direction, this.startCell, this.currentCell)
+  },
+
+  generatePath(direction, startCell, currentCell) {
+    //valid directions must have 1, -1, or 0 for dr and dc
+    const isValidDirection = [Math.abs(direction.dr), Math.abs(direction.dc)].every(
+      val => val === 0 || val === 1
+    )
+
+    if (isValidDirection) {
+      const path = []
+      const startCoords = this.coords(startCell)
+      const currentCoords = this.coords(currentCell)
+      const distance = Math.max(
+        Math.abs(currentCoords.row - startCoords.row),
+        Math.abs(currentCoords.col - startCoords.col)
+      )
+
+      for (let i = 0; i <= distance; i++) {
+        const row = startCoords.row + i * direction.dr
+        const col = startCoords.col + i * direction.dc
+        const cell = { row, col }
+        if (this.isInbounds(cell)) {
+          console.log("Adding cell to path:", cell)
+          path.push(cell)
+        } else {
+          return []
+        }
+      }
+      return path
+    } else {
+      return []
+    }
+  },
+
+  isInbounds(cell) {
+    const gridSize = parseInt(this.el.dataset.gridSize, 10)
+    return (
+      cell.row >= 0 &&
+      cell.row < gridSize &&
+      cell.col >= 0 &&
+      cell.col < gridSize
+    )
+  },
+ 
+  end() {
+    //check if the previewPath matches a word
+    // reset state 
+    this.pushEvent("check_word", { path: this.previewPath }
+    )
+    this.startCell = null
+    this.currentCell = null
+    this.direction = null
+    this.previewPath = []
+  },
+
+  coords(cell) {
+    return {
+      row: parseInt(cell.dataset.row, 10),
+      col: parseInt(cell.dataset.col, 10)
+    }
+  },
+
+  getCellFromPoint(e) {
+    const x = e.clientX
+    const y = e.clientY
+    return document.elementFromPoint(x, y)?.closest(".word-search-cell")
+  },
+
+}
+
 Hooks.WordSearch = {
   mounted() {
     this.selected = []
@@ -275,7 +406,7 @@ Hooks.WordSearch = {
       cell.classList.remove("invalid-animate")
       void cell.offsetWidth //force reflow to restart animation
       cell.classList.add("invalid-animate")
-    
+
       setTimeout(() => {
         cell.classList.remove("invalid-animate")
         cell.classList.remove("invalid")
@@ -290,6 +421,9 @@ let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
   hooks: Hooks
 })
+
+// Expose for console testing
+window.Hooks = Hooks
 
 console.log("livesocket created with hooks:", liveSocket)
 

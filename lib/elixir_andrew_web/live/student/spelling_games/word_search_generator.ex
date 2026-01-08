@@ -5,6 +5,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator do
   end
   
   defmodule Cell do
+    @derive Jason.Encoder
     defstruct letter: "", row: 0, col: 0, found: false
   end
 
