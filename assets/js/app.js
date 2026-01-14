@@ -110,9 +110,57 @@ Hooks.WordSearch1 = {
     this.currentCell = null
     this.previewPath = []
 
+    // Calculate cell size, padding, and gap once on mount
+    const gridElement = this.el.querySelector('.word-search-grid')
+    const firstCell = gridElement?.querySelector('.word-search-cell')
+    if (firstCell && gridElement) {
+      const rect = firstCell.getBoundingClientRect()
+      this.cellSize = rect.width
+
+      // Get computed styles for grid
+      const gridStyles = window.getComputedStyle(gridElement)
+      this.padding = parseFloat(gridStyles.paddingLeft)
+      this.gap = parseFloat(gridStyles.gap)
+    }
+
+    // Set color based on current number of permanent paths
+    // Randomize colors
+    const colors = [
+      '#FFE680', // Light Yellow
+      '#E0BBE4', // Light Lavender
+      '#FFD1DC', // Light Rose
+      '#C7CEEA', // Light Periwinkle
+      '#FFE4B5', // Light Moccasin
+      '#BAE1FF', // Light Blue
+      '#77DD77',  // Green
+      '#FFB3BA', // Light Pink
+      '#FFDFBA', // Light Peach
+      '#BAFFC9', // Light Mint
+    ]
+
+    for (let i = colors.length -1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [colors[i], colors[j]] = [colors[j], colors[i]];
+    }
+
+    this.colors = colors
+    
+    // Pointer events
     this.el.addEventListener("pointerdown", this.start.bind(this))
     this.el.addEventListener("pointermove", this.move.bind(this))
     window.addEventListener("pointerup", this.end.bind(this))
+
+    // Server events
+    this.handleEvent("keep-path", () => {
+      this.renderPath(this.previewPath, true)
+      this.previewPath = []
+      this.clearPreview()
+    })
+
+    this.handleEvent("clear-path", () => {
+      this.clearPreview()
+      this.previewPath = []
+    })
 
     // Expose to console for testing
     window.wordSearchHook = this
@@ -121,12 +169,6 @@ Hooks.WordSearch1 = {
       { dr: 2, dc: 0 },
       { dataset: { row: "0", col: "0" } },
       { dataset: { row: "3", col: "0" } }
-    ))
-
-    console.log("Test 2:", this.generatePath(
-      { dr: -1, dc: 0 },
-      { dataset: { row: "4", col: "4" } },
-      { dataset: { row: "1", col: "4" } }
     ))
   },
 
@@ -165,6 +207,7 @@ Hooks.WordSearch1 = {
 
     this.currentCell = hoverCell
     this.previewPath = this.generatePath(direction, this.startCell, this.currentCell)
+    this.renderPath(this.previewPath, false)
   },
 
   generatePath(direction, startCell, currentCell) {
@@ -208,16 +251,21 @@ Hooks.WordSearch1 = {
       cell.col < gridSize
     )
   },
- 
+
   end() {
     //check if the previewPath matches a word
-    // reset state 
-    this.pushEvent("check_word", { path: this.previewPath }
-    )
+    // Don't clear previewPath yet - wait for server response
+    this.pushEvent("check_word", { path: this.previewPath })
     this.startCell = null
     this.currentCell = null
     this.direction = null
-    this.previewPath = []
+    // previewPath will be cleared by keep-path event or we need to add timeout
+    setTimeout(() => {
+      if (this.previewPath.length > 0) {
+        this.clearPreview()
+        this.previewPath = []
+      }
+    }, 100)
   },
 
   coords(cell) {
@@ -227,170 +275,55 @@ Hooks.WordSearch1 = {
     }
   },
 
-  getCellFromPoint(e) {
-    const x = e.clientX
-    const y = e.clientY
-    return document.elementFromPoint(x, y)?.closest(".word-search-cell")
+  cellCenter({ row, col }) {
+    const size = this.cellSize
+    const padding = this.padding || 0
+    const gap = this.gap || 0
+
+    return {
+      x: padding + col * (size + gap) + size / 2,
+      y: padding + row * (size + gap) + size / 2
+    }
   },
 
-}
+  renderPath(path, keepExisting = false) {
+    const points = path.map(cell => this.cellCenter(cell))
+    let pathEl
+    if (keepExisting) {
+      pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+      pathEl.classList.add('permanent-path')
 
-Hooks.WordSearch = {
-  mounted() {
-    this.selected = []
-    this.direction = null
-    this.active = false
-    this.activeCell = null
+      const pathIndex = this.el.querySelectorAll('.permanent-path').length
+      pathEl.style.stroke = this.colors[pathIndex % this.colors.length]
 
-    this.el.addEventListener("pointerdown", this.start.bind(this))
-    this.el.addEventListener("pointermove", this.move.bind(this))
-    window.addEventListener("pointerup", this.end.bind(this))
-  },
+    } else {
+      pathEl = this.el.querySelector("#preview-path")
+    }
 
-  start(e) {
-    const cell = this.getCellFromPoint(e)
-    if (!cell) return
+    if (!pathEl) return
 
-    this.reset()
-    this.active = true
-    this.select(cell)
-    this.setActive(cell)
-  },
-
-  move(e) {
-    if (!this.active) return
-
-    const cell = this.getCellFromPoint(e)
-    if (!cell) return
-
-    // Backtrack
-    if (this.isPrevious(cell)) {
-      const last = this.selected.pop()
-      last.classList.remove("selected")
-      this.setActive(cell)
-
-      // Unlock direction if needed
-      this.lockDirectionIfNeeded()
-
-      if (this.selected.length < 2) {
-        this.direction = null
+    if (points.length === 0) {
+      if (!keepExisting) {
+        pathEl.setAttribute("d", "")
       }
-
       return
     }
 
-    // Ignore if already selected
-    if (this.isSelected(cell)) return
+    const d = points.map((point, i) => {
+      const command = i === 0 ? "M" : "L"
+      return `${command} ${point.x} ${point.y}`
+    }).join(" ")
 
-    // Move forward
-    if (this.canSelect(cell)) {
-      this.setActive(cell)
-      this.select(cell)
-    } else {
-      this.animateInvalidPath()
+    pathEl.setAttribute("d", d)
+    if (keepExisting) {
+      const svg = this.el.querySelector('svg')
+      svg.appendChild(pathEl)
     }
   },
 
-  end(e) {
-    if (!this.active) return
-    this.active = false
-    this.clearActive()
-
-    const path = this.selected.map(cell => ({
-      row: parseInt(cell.dataset.row, 10),
-      col: parseInt(cell.dataset.col, 10)
-    }))
-
-    this.pushEvent("check_word", { path })
-    this.reset()
-  },
-
-  select(cell) {
-    cell.classList.add("selected")
-    this.selected.push(cell)
-
-    if (this.selected.length === 2) {
-      this.lockDirectionIfNeeded()
-    }
-
-    if (navigator.vibrate) navigator.vibrate(10)
-  },
-
-  setActive(cell) {
-    if (this.activeCell === cell) return
-
-    this.clearActive()
-    this.activeCell = cell
-    cell.classList.add("active")
-  },
-
-  clearActive() {
-    if (this.activeCell) {
-      this.activeCell.classList.remove("active")
-      this.activeCell = null
-    }
-  },
-
-  reset() {
-    this.selected.forEach(c => c.classList.remove("selected"))
-    this.clearActive()
-    this.selected = []
-    this.direction = null
-  },
-
-  coords(cell) {
-    return {
-      row: parseInt(cell.dataset.row, 10),
-      col: parseInt(cell.dataset.col, 10)
-    }
-  },
-
-  isSelected(cell) {
-    return this.selected.includes(cell)
-  },
-
-  isPrevious(cell) {
-    if (this.selected.length < 2) return false
-    return this.selected.at(-2) === cell
-  },
-
-  lockDirectionIfNeeded() {
-    if (this.selected.length !== 2) return
-
-    const [a, b] = this.selected
-    const ca = this.coords(a)
-    const cb = this.coords(b)
-
-    this.direction = {
-      dr: cb.row - ca.row,
-      dc: cb.col - ca.col
-    }
-  },
-
-  canSelect(cell) {
-    const last = this.selected.at(-1)
-    const from = this.coords(last)
-    const to = this.coords(cell)
-
-    if (!this.isAdjacent(from, to)) return false
-
-    if (this.direction) {
-      return this.sameDirection(from, to)
-    }
-
-    return true
-  },
-
-  isAdjacent(a, b) {
-    const dr = Math.abs(a.row - b.row)
-    const dc = Math.abs(a.col - b.col)
-    return (dr <= 1 && dc <= 1) && !(dr === 0 && dc === 0)
-  },
-
-  sameDirection(from, to) {
-    const dr = to.row - from.row
-    const dc = to.col - from.col
-    return dr === this.direction.dr && dc === this.direction.dc
+  clearPreview() {
+    const pathEl = this.el.querySelector("#preview-path")
+    pathEl?.setAttribute("d", "")
   },
 
   getCellFromPoint(e) {
@@ -398,21 +331,6 @@ Hooks.WordSearch = {
     const y = e.clientY
     return document.elementFromPoint(x, y)?.closest(".word-search-cell")
   },
-
-  animateInvalidPath() {
-    this.selected.forEach(cell => {
-      cell.classList.add("invalid")
-
-      cell.classList.remove("invalid-animate")
-      void cell.offsetWidth //force reflow to restart animation
-      cell.classList.add("invalid-animate")
-
-      setTimeout(() => {
-        cell.classList.remove("invalid-animate")
-        cell.classList.remove("invalid")
-      }, 130)
-    })
-  }
 }
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")

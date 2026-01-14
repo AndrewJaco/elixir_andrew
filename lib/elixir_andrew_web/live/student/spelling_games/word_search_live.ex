@@ -47,20 +47,34 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
       </div>
     <% end %>
 
-    <%= if @game_state == :in_round do %>
-    <div class="wordsearch-game flex flex-col lg:flex-row flex-1 border-2 m-4 p-4 rounded-lg border-accent justify-center items-center gap-8">
+    <%= if @game_state in [:in_round, :game_over] do %>
+    <div 
+      class="wordsearch-game flex flex-col lg:flex-row flex-1 border-2 m-4 p-4 rounded-lg border-accent justify-center items-center gap-8"
+      phx-hook="WordSearch1"
+      id="word-search-wrapper"
+      data-grid={Jason.encode!(@grid_2d)}
+      data-grid-size={WordSearchGenerator.grid_size()}
+    >
       <%!--grid for the game --%>
-      <div 
-        class="word-search-grid game-shadow" 
-        phx-hook="WordSearch1" 
-        id="word-search-grid" 
-        style={"--grid-size: #{WordSearchGenerator.grid_size()}"}
-        data-grid={Jason.encode!(@grid_2d)}
-        data-grid-size={WordSearchGenerator.grid_size()}
-      >
+      <div class="relative">
+        <svg
+          class="absolute inset-0 z-10 pointer-events-none"
+          width="100%"
+          height="100%"
+          style={""}
+          phx-update="ignore"
+          id="word-search-svg"
+        >
+          <path id="preview-path" />
+        </svg>
+        <div 
+          class="word-search-grid game-shadow" 
+          id="word-search-grid" 
+          style={"--grid-size: #{WordSearchGenerator.grid_size()}"}
+        >
         <%= for cell <- @grid do %>
           <div 
-            class={"flex items-center justify-center word-search-cell" <> (if cell.found, do: " border-2 border-green-500" , else: "")} 
+            class="flex items-center justify-center word-search-cell"
             data-row={cell.row} 
             data-col={cell.col}
             data-letter={cell.letter}
@@ -70,6 +84,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
           </div>
         <% end %>
         </div>
+      </div>
       <%!-- word bank --%>
       <div class="bg-white border-2 border-primary rounded-lg p-4 game-shadow">
         <h2 class="text-xl font-bold mb-4 text-center">Word Bank</h2>
@@ -82,30 +97,27 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
           </div>
         </div>
     </div>
-    <% end %>
-
-    <%= if @game_state == :game_over do %>
-      <div class="absolute inset-0 bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white p-8 rounded-lg text-center game-shadow">
-          <h1 class="text-3xl font-bold mb-4">Congratulations!</h1>
-          <p class="mb-6">You found all the words!</p>
-          <button phx-click="restart_game" class="btn btn-primary">Play Again</button>
+    
+      <%= if @game_state == :game_over do %>
+        <div class="absolute inset-0 bg-opacity-50 flex items-center justify-center">
+          <div class="bg-white p-8 rounded-lg text-center game-shadow">
+            <h1 class="text-3xl font-bold mb-4">Congratulations!</h1>
+            <p class="mb-6">You found all the words!</p>
+            <button phx-click="restart_game" class="btn btn-primary">Play Again</button>
+            <.link navigate={~p"/student/home"} class="btn btn-secondary ml-4">Exit</.link>
+          </div>
         </div>
-      </div>
+      <% end %>
     <% end %>
     """
   end
 
   def handle_event("check_word", %{"path" => path}, socket) do
-  #compare path to each word's path
-  #if any path is equal, mark word as found
-  #check if all words are found and end game
-    IO.inspect(path, label: "Selected path")
     path_tuples = Enum.map(path, fn %{"row" => row, "col" => col} -> {row, col} end)
     reversed_path = Enum.reverse(path_tuples)
     
-    socket = 
-      Enum.reduce(socket.assigns.words_for_game, socket, fn word, acc_socket ->
+    {socket, word_found} = 
+      Enum.reduce(socket.assigns.words_for_game, {socket, false}, fn word, {acc_socket, found} ->
         if (word.path == path_tuples or word.path == reversed_path) and not word.found do
           #mark word as found
           updated_word = %Word{word | found: true}
@@ -120,11 +132,18 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
               cell
             end
           end)
-          assign(acc_socket, words_for_game: updated_words, grid: updated_grid)
+          {assign(acc_socket, words_for_game: updated_words, grid: updated_grid), true}
         else
-          acc_socket
+          {acc_socket, found}
         end
       end)
+
+    socket = if word_found do
+      push_event(socket, "keep-path", %{})
+    else
+      push_event(socket, "clear-path", %{})
+      socket
+    end
 
     is_game_over?(socket)
   end

@@ -1,5 +1,5 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator do
-  @grid_size 12
+  @grid_size 10
   defmodule Word do
     defstruct text: "", uppercase_text: "", path: [], direction: {0,0}, found: false
   end
