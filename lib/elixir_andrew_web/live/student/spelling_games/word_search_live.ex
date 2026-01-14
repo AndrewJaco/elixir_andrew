@@ -5,7 +5,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
 
   def mount(_params, _session, socket) do
     socket = initialize_game(socket)
-    welcome_timer = Process.send_after(self(), :start_game, 4000)
+    welcome_timer = Process.send_after(self(), :start_game, 2000)
       socket = assign(socket, :welcome_timer, welcome_timer)
     {:ok, socket}
   end
@@ -23,11 +23,8 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
     #get only the words that were placed in the grid for the word bank
     placed_texts = MapSet.new(placed_words, fn word -> word.text end)
     placed_words = Enum.filter(placed_words, fn word -> MapSet.member?(placed_texts, word.text) end)
-    
-    # IO.inspect(grid, label: "Final Grid")
 
     socket 
-    # |> assign(:word_bank, word_bank)
     |> assign(:words_for_game, placed_words)
     |> assign(:grid_2d, grid)
     |> assign(:grid, List.flatten(grid))
@@ -50,7 +47,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
     <%= if @game_state in [:in_round, :game_over] do %>
     <div 
       class="wordsearch-game flex flex-col lg:flex-row flex-1 border-2 m-4 p-4 rounded-lg border-accent justify-center items-center gap-8"
-      phx-hook="WordSearch1"
+      phx-hook="WordSearch"
       id="word-search-wrapper"
       data-grid={Jason.encode!(@grid_2d)}
       data-grid-size={WordSearchGenerator.grid_size()}
@@ -68,7 +65,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
           <path id="preview-path" />
         </svg>
         <div 
-          class="word-search-grid game-shadow" 
+          class={"word-search-grid game-shadow" <> (if @game_state == :game_over, do: " pointer-events-none", else: "")}
           id="word-search-grid" 
           style={"--grid-size: #{WordSearchGenerator.grid_size()}"}
         >
@@ -99,17 +96,21 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
     </div>
     
       <%= if @game_state == :game_over do %>
-        <div class="absolute inset-0 bg-opacity-50 flex items-center justify-center">
-          <div class="bg-white p-8 rounded-lg text-center game-shadow">
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="p-8 border-2 border-alert rounded-lg text-center game-shadow wordsearch-modal">
             <h1 class="text-3xl font-bold mb-4">Congratulations!</h1>
             <p class="mb-6">You found all the words!</p>
             <button phx-click="restart_game" class="btn btn-primary">Play Again</button>
-            <.link navigate={~p"/student/home"} class="btn btn-secondary ml-4">Exit</.link>
+            <.link navigate={~p"/student/home"} class="btn btn-alert ml-4">Exit</.link>
           </div>
         </div>
       <% end %>
     <% end %>
     """
+  end
+
+  def handle_event("check_word", %{"path" => _path}, %{assigns: %{game_state: :game_over}} = socket) do
+    {:noreply, socket}
   end
 
   def handle_event("check_word", %{"path" => path}, socket) do
@@ -145,12 +146,17 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
       socket
     end
 
-    is_game_over?(socket)
+    # Check if game is complete and transition state
+    if Enum.all?(socket.assigns.words_for_game, fn word -> word.found end) do
+      {:noreply, assign(socket, :game_state, :game_over)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("restart_game", _params, socket) do
     socket = initialize_game(socket)
-    Process.send_after(self(), :start_game, 4000)
+    Process.send_after(self(), :start_game, 3000)
     {:noreply, socket}
   end
 

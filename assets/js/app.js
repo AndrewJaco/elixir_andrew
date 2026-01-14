@@ -104,7 +104,7 @@ Hooks.Sortable = {
   }
 }
 
-Hooks.WordSearch1 = {
+Hooks.WordSearch = {
   mounted() {
     this.startCell = null
     this.currentCell = null
@@ -121,6 +121,13 @@ Hooks.WordSearch1 = {
       const gridStyles = window.getComputedStyle(gridElement)
       this.padding = parseFloat(gridStyles.paddingLeft)
       this.gap = parseFloat(gridStyles.gap)
+
+      // Get grid's position relative to the SVG
+      const svg = this.el.querySelector('svg')
+      const gridRect = gridElement.getBoundingClientRect()
+      const svgRect = svg.getBoundingClientRect()
+      this.gridOffsetX = gridRect.left - svgRect.left
+      this.gridOffsetY = gridRect.top - svgRect.top
     }
 
     // Set color based on current number of permanent paths
@@ -138,13 +145,13 @@ Hooks.WordSearch1 = {
       '#BAFFC9', // Light Mint
     ]
 
-    for (let i = colors.length -1; i > 0; i--) {
+    for (let i = colors.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [colors[i], colors[j]] = [colors[j], colors[i]];
     }
 
     this.colors = colors
-    
+
     // Pointer events
     this.el.addEventListener("pointerdown", this.start.bind(this))
     this.el.addEventListener("pointermove", this.move.bind(this))
@@ -253,19 +260,17 @@ Hooks.WordSearch1 = {
   },
 
   end() {
-    //check if the previewPath matches a word
-    // Don't clear previewPath yet - wait for server response
     this.pushEvent("check_word", { path: this.previewPath })
     this.startCell = null
     this.currentCell = null
     this.direction = null
-    // previewPath will be cleared by keep-path event or we need to add timeout
+
     setTimeout(() => {
       if (this.previewPath.length > 0) {
         this.clearPreview()
         this.previewPath = []
       }
-    }, 100)
+    }, 200)
   },
 
   coords(cell) {
@@ -276,13 +281,20 @@ Hooks.WordSearch1 = {
   },
 
   cellCenter({ row, col }) {
-    const size = this.cellSize
-    const padding = this.padding || 0
-    const gap = this.gap || 0
+    // Get the actual cell element and its position
+    const gridElement = this.el.querySelector('.word-search-grid')
+    const cell = gridElement.querySelector(`[data-row="${row}"][data-col="${col}"]`)
+
+    if (!cell) return { x: 0, y: 0 }
+
+    // Get positions relative to viewport
+    const cellRect = cell.getBoundingClientRect()
+    const svg = this.el.querySelector('svg')
+    const svgRect = svg.getBoundingClientRect()
 
     return {
-      x: padding + col * (size + gap) + size / 2,
-      y: padding + row * (size + gap) + size / 2
+      x: cellRect.left - svgRect.left + cellRect.width / 2,
+      y: cellRect.top - svgRect.top + cellRect.height / 2
     }
   },
 
