@@ -76,6 +76,7 @@ defmodule ElixirAndrewWeb.Router do
       # Admin routes
       live "/dashboard", Admin.DashboardLive 
       live "/dashboard/students/:user_id", Admin.StudentEditLive, :edit
+      live "/student/:student_id/update_progress", Admin.StudentUpdateProgress, :edit
       # live "/dashboard/teachers", Admin.TeacherListLive
 
       # Student routes

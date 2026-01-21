@@ -3,13 +3,10 @@ defmodule ElixirAndrewWeb.Live.Student.AI.Schemas.MatchingSchema do
   Defines the expected JSON structure for AI-generated word definitions for matching game.
   """
 
-  @type word_entry :: %{
-          "word" => String.t(),
-          "definition" => String.t()
-        }
-  @type t :: %{
-          "words" => [word_entry()]
-        }
+  @type word_entry :: %{String.t() => String.t()}
+  @type t :: %{String.t() => list(word_entry())}
+
+  # JSON Schema for OpenAI structured output
 
   @schema %{
     "type" => "object",

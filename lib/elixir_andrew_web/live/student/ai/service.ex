@@ -77,6 +77,11 @@ defmodule ElixirAndrewWeb.Live.Student.AI.Service do
         
         parse_and_validate(response_text, schema)
       
+      # LangChain returns 3-tuple on error
+      {:error, _chain, %LangChain.LangChainError{message: message}} ->
+        {:error, {:api_error, message}}
+      
+      # Fallback for other error formats
       {:error, reason} ->
         {:error, {:api_error, reason}}
     end
