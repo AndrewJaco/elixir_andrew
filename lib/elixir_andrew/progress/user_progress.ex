@@ -5,7 +5,7 @@ defmodule ElixirAndrew.Progress.UserProgress do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "user_progress" do
-    field :level, :string
+    field :level, :string 
     field :book, :string
     field :unit, :integer
     field :reading_question_index, :integer
@@ -22,5 +22,6 @@ defmodule ElixirAndrew.Progress.UserProgress do
     user_progress
     |> cast(attrs, [:user_id, :unit, :level, :book, :reading_question_index, :game, :prev_tutor, :sleeping_tutor])
     |> validate_required([:user_id, :unit, :level, :book])
+    |> validate_format(:level, ~r/^\d+\/[A-Z0-9]+$/i, message: "must be in format 'number/level' (e.g., 6/A1)")
   end
 end
