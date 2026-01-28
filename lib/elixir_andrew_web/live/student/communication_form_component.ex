@@ -19,8 +19,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
       session
     end
 
-    # Format spelling words for display when not new
-    session = if !is_new && is_list(session.spelling_words) do
+    session = if is_list(session.spelling_words) do
       %{session | spelling_words: format_spelling_words(session.spelling_words)}
     else
       session
@@ -65,8 +64,9 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
             </div>
           <% else %>
             <input type="hidden" name="date" value={@form[:date].value} id={"date-input-#{@id}"}/>
-            <div class="mb-2 p-2">
-              <p><%= format_date(@form[:date].value) %></p> 
+            <div class="flex justify-between mb-2 p-2">
+              <p><%= format_date(@form[:date].value) %></p>
+              <.link class="btn btn-accent hover:text-secondary" navigate={~p"/student/spelling_review/?spelling_words=#{@form[:spelling_words].value}"} phx-target={@myself}>Spelling Games</.link> 
             </div>
           <% end %>
           <div class="flex mt-1 gap-4"> 
@@ -140,8 +140,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
   end
 
   def handle_event("validate", params, socket) do
-    params = handle_spelling_words(params)
-
+    # Don't convert spelling_words to list during validation - keep as string for display
     params = Map.put(params, "student_id", socket.assigns.session.student_id)
 
     changeset = 
@@ -153,6 +152,7 @@ defmodule ElixirAndrewWeb.Student.CommunicationFormComponent do
   end
 
   def handle_event("save", params, socket) do
+    # Only convert to list when saving
     params = handle_spelling_words(params)
     params = Map.put(params, "student_id", socket.assigns.session.student_id)
 

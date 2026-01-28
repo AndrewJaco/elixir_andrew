@@ -1,9 +1,25 @@
 defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
   use ElixirAndrewWeb, :live_view
 
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
     student_id = socket.assigns.current_user.id
-    spelling_words = socket.assigns.spelling_words
+    
+    # Get spelling words from socket assigns (from hook) or fall back to URL params
+    spelling_words = case socket.assigns[:spelling_words] do
+      nil -> 
+        # Parse from URL params if not set by hook
+        case params["spelling_words"] do
+          nil -> []
+          words when is_binary(words) -> 
+            words
+            |> String.split(",")
+            |> Enum.map(&String.trim/1)
+            |> Enum.reject(&(&1 == ""))
+          words when is_list(words) -> words
+        end
+      words when is_list(words) -> words
+      _ -> []
+    end
     
     user_progress = ElixirAndrew.Progress.get_user_progress(student_id)
     game_history = if user_progress, do: user_progress.game || [], else: []
@@ -14,6 +30,7 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
 
       socket = socket
       |> assign(:student_id, student_id)
+      |> assign(:spelling_words, spelling_words)
       |> assign(:current_index, -1)
       |> assign(:current_word, List.first(spelling_words))
       |> assign(:current_text, "Review first!")
@@ -95,13 +112,13 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
           </div>
       <% end %>
       <div>
-              <a href={"/student/spelling_games/hangman"} class="text-sm text-accent underline">Debug: Hangman</a>
-              <a href={"/student/spelling_games/flashcards"} class="ml-4 text-sm text-accent underline">Debug: Flashcards</a>
-              <a href={"/student/spelling_games/matching"} class="ml-4 text-sm text-accent underline">Debug: Matching</a>
-              <a href={"/student/spelling_games/word_search"} class="ml-4 text-sm text-accent underline">Debug: Word Search</a>
-              <a href={"/student/spelling_games/crossword"} class="ml-4 text-sm text-accent underline">Debug: Crossword</a>
-              <a href={"/student/spelling_games/unscramble"} class="ml-4 text-sm text-accent underline">Debug: Unscramble</a>
-              <a href={"/student/spelling_games/catch_it"} class="ml-4 text-sm text-accent underline">Debug: Catch It</a>
+              <a href={"/student/spelling_games/hangman?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="text-sm text-accent underline">Debug: Hangman</a>
+              <a href={"/student/spelling_games/flashcards?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Flashcards</a>
+              <a href={"/student/spelling_games/matching?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Matching</a>
+              <a href={"/student/spelling_games/word_search?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Word Search</a>
+              <a href={"/student/spelling_games/crossword?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Crossword</a>
+              <a href={"/student/spelling_games/unscramble?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Unscramble</a>
+              <a href={"/student/spelling_games/catch_it?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Catch It</a>
 
       </div>
     </div> 
@@ -168,9 +185,12 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
       "spelling"
     )
     
+    # Encode spelling words to pass them to the game
+    words_param = URI.encode_query(%{"spelling_words" => Enum.join(socket.assigns.spelling_words, ",")})
+    
     {:noreply, 
       push_navigate(socket, 
-        to: "/student/spelling_games/#{game_type}"
+        to: "/student/spelling_games/#{game_type}?#{words_param}"
       )
     }
   end

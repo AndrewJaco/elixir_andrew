@@ -90,8 +90,8 @@ defmodule ElixirAndrewWeb.Router do
       
     end
 
-    # Spelling session - loads spelling words once for review + games
-    live_session :spelling_session,
+    # Spelling review session - loads spelling words from DB
+    live_session :spelling_review,
       on_mount: [
         {ElixirAndrewWeb.UserAuth, :ensure_authenticated},
         {ElixirAndrewWeb.ThemeHook, :default},
@@ -99,6 +99,14 @@ defmodule ElixirAndrewWeb.Router do
       ] do
       
       live "/student/spelling_review", Student.SpellingReviewLive
+    end
+
+    # Spelling games session - uses words from navigation params
+    live_session :spelling_games,
+      on_mount: [
+        {ElixirAndrewWeb.UserAuth, :ensure_authenticated},
+        {ElixirAndrewWeb.ThemeHook, :default}
+      ] do
       
       # Spelling games
       live "/student/spelling_games/flashcards", Student.SpellingGames.FlashcardsLive

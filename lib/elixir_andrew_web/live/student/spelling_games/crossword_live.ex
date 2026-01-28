@@ -4,16 +4,24 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
   require Logger
 
   @impl true
-  def mount(_params, _session, socket) do
-    if connected?(socket) do
-      send(self(), :initialize_game)
+  def mount(params, _session, socket) do
+    spelling_words = case params["spelling_words"] do
+      nil -> []
+      words when is_binary(words) -> 
+        words
+        |> String.split(",")
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+      words when is_list(words) -> words
     end
     
     socket =
       socket
+      |> assign(:spelling_words, spelling_words)
       |> assign(:game_state, :loading)
       |> assign(:error, nil)
       |> assign(:words_with_clues, nil)
+      |> initialize_game()
 
     {:ok, socket}
   end
@@ -49,7 +57,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
     """
   end
 
-  def handle_info(:initialize_game, socket) do
+  defp initialize_game(socket) do
     Logger.info("Initializing crossword game...")
     
     spelling_words = socket.assigns.spelling_words
@@ -58,7 +66,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
     case ElixirAndrew.Progress.get_user_progress(user_id) do
       nil ->
         Logger.error("No progress found for user #{user_id}")
-        {:noreply, assign(socket, game_state: :error, error: "No progress found")}
+        assign(socket, game_state: :error, error: "No progress found")
       
       progress ->
         case CrosswordGenerator.generate_crossword(spelling_words, progress) do
@@ -72,7 +80,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
           
           {:error, reason} ->
             Logger.error("✗ Failed to generate crossword: #{inspect(reason)}")
-            {:noreply, assign(socket, game_state: :error, error: reason)}
+            assign(socket, game_state: :error, error: reason)
         end
     end
   end

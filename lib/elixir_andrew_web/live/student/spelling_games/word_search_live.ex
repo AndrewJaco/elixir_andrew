@@ -3,10 +3,25 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
   alias ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator 
   alias WordSearchGenerator.{Word, Cell}
 
-  def mount(_params, _session, socket) do
-    socket = initialize_game(socket)
+  def mount(params, _session, socket) do
+    # Get spelling words from URL params or fallback to empty list
+    spelling_words = case params["spelling_words"] do
+      nil -> []
+      words when is_binary(words) -> 
+        words
+        |> String.split(",")
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+      words when is_list(words) -> words
+    end
+    
+    socket = 
+      socket
+      |> assign(:spelling_words, spelling_words)
+      |> initialize_game()
+      
     welcome_timer = Process.send_after(self(), :start_game, 2000)
-      socket = assign(socket, :welcome_timer, welcome_timer)
+    socket = assign(socket, :welcome_timer, welcome_timer)
     {:ok, socket}
   end
 
