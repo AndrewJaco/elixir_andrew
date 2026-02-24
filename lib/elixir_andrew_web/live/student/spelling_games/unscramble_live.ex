@@ -1,6 +1,7 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
   use ElixirAndrewWeb, :live_view
 
+  @impl true
   def mount(params, _session, socket) do
    student_id = socket.assigns.current_user.id
 
@@ -38,6 +39,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
     |> assign(:game_state, :intro) # :intro, :in_round, :round_success, :round_fail, :game_over
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="flex flex-col flex-1 items-center justify-center border-2 m-4 p-6 rounded-lg border-accent relative">
@@ -117,6 +119,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
     """
   end
 
+  @impl true
   def handle_event("start_game", _params, socket) do
     {:noreply, assign(socket, game_state: :in_round)}
   end

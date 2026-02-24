@@ -49,12 +49,26 @@ Hooks.AutoClearFlash = {
 
 Hooks.ThemeHandler = {
   mounted() {
-    const savedTheme = localStorage.getItem("theme")
-    const serverTheme = this.el.dataset.theme
+    // Only sync theme once per session, not on every reconnection
+    if (!this.themeSynced) {
+      const savedTheme = localStorage.getItem("theme")
+      const serverTheme = this.el.dataset.theme
 
-    if (savedTheme && savedTheme !== serverTheme) {
-      this.pushEvent("sync-theme", { theme: savedTheme })
-    } else {
+      if (savedTheme && savedTheme !== serverTheme) {
+        this.pushEvent("sync-theme", { theme: savedTheme })
+      } else {
+        localStorage.setItem("theme", serverTheme)
+      }
+
+      this.themeSynced = true
+    }
+  },
+
+  reconnected() {
+    // On reconnection, just ensure localStorage has the current server theme
+    // Don't push an event that could re-trigger initialization
+    const serverTheme = this.el.dataset.theme
+    if (serverTheme) {
       localStorage.setItem("theme", serverTheme)
     }
   }

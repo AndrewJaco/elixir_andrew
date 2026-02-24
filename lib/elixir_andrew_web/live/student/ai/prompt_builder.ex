@@ -26,6 +26,19 @@ defmodule ElixirAndrewWeb.Live.AI.PromptBuilder do
     - Each clue should be simple, student-friendly, and level appropriate.
     - Each clue should be no more than two sentences.
     - Clues should help students learn and remember the word.
+
+    The response MUST be valid JSON.
+
+    The root object MUST contain a key called "words".
+
+    Do NOT use "clues" or any other key.
+
+    Example:
+    {
+      "words": [
+        {"word": "airplane", "clue": "A flying vehicle"}
+      ]
+    }
     """
   end
 

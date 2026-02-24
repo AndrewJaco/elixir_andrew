@@ -1,6 +1,7 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.HangmanLive do
   use ElixirAndrewWeb, :live_view
 
+  @impl true
   def mount(params, _session, socket) do
     student_id = socket.assigns.current_user.id
 
@@ -36,6 +37,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.HangmanLive do
     |> assign(:game_state, :intro) # :intro, :in_round, :round_success, :round_fail, :game_over
   end
 
+  @impl true
   def handle_event("guess_letter", %{"letter" => letter}, socket) do
     IO.inspect(letter, label: "Guessed letter")
     

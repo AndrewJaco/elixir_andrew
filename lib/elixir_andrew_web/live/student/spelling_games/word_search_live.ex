@@ -3,6 +3,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
   alias ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator 
   alias WordSearchGenerator.{Word, Cell}
 
+  @impl true
   def mount(params, _session, socket) do
     # Get spelling words from URL params or fallback to empty list
     spelling_words = case params["spelling_words"] do
@@ -46,6 +47,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
     |> assign(:game_state, :intro) # :intro, :in_round, :game_over
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <%= if @game_state == :intro do %>
@@ -124,6 +126,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
     """
   end
 
+  @impl true
   def handle_event("check_word", %{"path" => _path}, %{assigns: %{game_state: :game_over}} = socket) do
     {:noreply, socket}
   end
@@ -175,16 +178,9 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_info(:start_game, socket) do
     {:noreply, assign(socket, :game_state, :in_round)}
-  end
-
-  defp is_game_over?(socket) do
-    if Enum.any?(socket.assigns.words_for_game, fn word -> not word.found end) do
-      {:noreply, socket}
-    else
-      {:noreply, assign(socket, :game_state, :game_over)}
-    end
   end
 
 end

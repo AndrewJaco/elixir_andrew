@@ -63,7 +63,8 @@ defmodule ElixirAndrew.MixProject do
       {:bandit, "~> 1.5"},
       {:langchain, "0.3.3"},
       {:dotenvy, "~> 1.0.0"},
-      {:req, "~> 0.5.0"}
+      {:req, "~> 0.5.0"},
+      {:ex_json_schema, "~> 0.11.2"}
     ]
   end
 

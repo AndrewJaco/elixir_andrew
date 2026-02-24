@@ -1,6 +1,7 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.MatchingLive do
   use ElixirAndrewWeb, :live_view
 
+  @impl true
   def mount(params, _session, socket) do
     spelling_words = case params["spelling_words"] do
       nil -> []
