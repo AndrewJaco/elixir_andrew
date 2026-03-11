@@ -28,12 +28,6 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
     if connected?(socket) do
       send(self(), :initialize_game)
     end
-    
-    # if connected?(socket) and not socket.assigns.initialized do
-    #   {:ok, initialize_game(socket)}
-    # else
-    #   {:ok, socket}
-    # end
 
     {:ok, socket}
   end
