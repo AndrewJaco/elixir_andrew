@@ -1,13 +1,7 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator do
-  @grid_size 10
-  defmodule Word do
-    defstruct text: "", uppercase_text: "", path: [], direction: {0,0}, found: false
-  end
+  alias ElixirAndrewWeb.Student.SpellingGames.WordSearch.{Word, Cell}
   
-  defmodule Cell do
-    @derive Jason.Encoder
-    defstruct letter: "", row: 0, col: 0, found: false
-  end
+  @grid_size 10
 
   def grid_size(), do: @grid_size
 

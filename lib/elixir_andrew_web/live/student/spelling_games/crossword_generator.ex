@@ -1,5 +1,5 @@
-defmodule ElixirAndrewWeb.Live.SpellingGames.CrosswordGenerator do
-  alias ElixirAndrewWeb.Live.Student.AI.Service
+defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator do
+  alias ElixirAndrewWeb.Student.AI.Service
   require Logger
 
   @grid_size 15
@@ -7,16 +7,11 @@ defmodule ElixirAndrewWeb.Live.SpellingGames.CrosswordGenerator do
   @parallel_branches 4
   @max_span 12
 
-  def grid_size(), do: @grid_size
 
   @spec get_crossword_clues(list(String.t()), map()) :: {:ok, list(map())} | {:error, term()}
   def get_crossword_clues(spelling_words, progress) do
     Logger.info("=== Crossword Generator Test ===")
     Logger.info("Spelling words: #{inspect(spelling_words)}")
-    # Logger.info("Progress: #{inspect(progress)}")
-    # Logger.info("Progress level: #{inspect(progress.level)}")
-    # Logger.info("Progress book: #{inspect(progress.book)}")
-    # Logger.info("Progress unit: #{inspect(progress.unit)}")
 
     # TEMPORARY: Return mock data to test without AI call
     mock_words_with_clues = Enum.map(spelling_words, fn word ->
@@ -158,22 +153,64 @@ defmodule ElixirAndrewWeb.Live.SpellingGames.CrosswordGenerator do
   # placement validation
   defp valid_placement?(word, placement, grid, grid_size) do 
     letters = String.graphemes(word)
+    word_length = length(letters)
 
-    Enum.with_index(letters)
-    |> Enum.all?(fn {letter, i} ->
-      {r, c} = 
-        case placement.dir do
-          :across -> {placement.row, placement.col + i}
-          :down -> {placement.row + i, placement.col}
+    # Check endpoints are clear (no letters before/after word in same direction)
+    {start_check, end_check} = case placement.dir do
+      :across -> 
+        {{placement.row, placement.col - 1}, {placement.row, placement.col + word_length}}
+      :down -> 
+        {{placement.row - 1, placement.col}, {placement.row + word_length, placement.col}}
+    end
+    
+    endpoints_clear = 
+      not Map.has_key?(grid, start_check) and
+      not Map.has_key?(grid, end_check)
+
+    # Check each letter position
+    letters_valid = 
+      Enum.with_index(letters)
+      |> Enum.all?(fn {letter, i} ->
+        {r, c} = 
+          case placement.dir do
+            :across -> {placement.row, placement.col + i}
+            :down -> {placement.row + i, placement.col}
+          end
+
+        cell_value = Map.get(grid, {r, c})
+
+        cond do
+          # Out of bounds
+          not within_bounds?(r, c, grid_size) -> false
+          
+          # Intersection - must match existing letter
+          cell_value != nil and cell_value != letter -> false
+          
+          # Intersection with matching letter - OK, skip other checks
+          cell_value == letter -> true
+          
+          # New letter - check no perpendicular adjacencies
+          true -> not has_perpendicular_adjacency?(r, c, placement.dir, grid)
         end
+      end)
 
-      within_bounds?(r, c, grid_size) and
-        (Map.get(grid, {r, c}) in [nil, letter])
-    end)
+    endpoints_clear and letters_valid
   end
 
   defp within_bounds?(r, c, grid_size) do
     r >= 0 and r < grid_size and c >= 0 and c < grid_size
+  end
+
+  defp has_perpendicular_adjacency?(r, c, dir, grid) do
+    # Check perpendicular directions only to avoid parallel word collisions
+    adjacent_coords = case dir do
+      :across -> [{r - 1, c}, {r + 1, c}]  # Check above/below
+      :down -> [{r, c - 1}, {r, c + 1}]    # Check left/right
+    end
+
+    Enum.any?(adjacent_coords, fn coord ->
+      Map.has_key?(grid, coord)
+    end)
   end
     
   # placement scoring
@@ -242,7 +279,8 @@ defmodule ElixirAndrewWeb.Live.SpellingGames.CrosswordGenerator do
         Map.merge(entry, %{
           row: placement.row,
           col: placement.col,
-          direction: placement.dir
+          direction: placement.dir,
+          length: String.length(word)
         })
 
       %{

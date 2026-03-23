@@ -1,5 +1,6 @@
 defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
   use ElixirAndrewWeb, :live_view
+  alias ElixirAndrewWeb.Student.SpellingGames.GameSelector
 
   def mount(params, _session, socket) do
     student_id = socket.assigns.current_user.id
@@ -24,6 +25,14 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
     user_progress = ElixirAndrew.Progress.get_user_progress(student_id)
     game_history = if user_progress, do: user_progress.game || [], else: []
     
+    selected_game = GameSelector.select_game(game_history, "spelling")
+
+    case selected_game do
+      "crossword" -> #run the crossword_clue_generator and save to assigns async
+        send(self(), :generate_crossword_clues)
+      _ -> :ok
+    end
+
     IO.inspect(user_progress, label: "User progress for #{student_id}")
     IO.inspect(game_history, label: "Game history")
     IO.inspect(spelling_words, label: "Spelling words for review")
@@ -40,6 +49,10 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
       |> assign(:view_state, :welcome)
       |> assign(:timer_progress, 0)
       |> assign(:progress_timer_ref, nil)
+      |> assign(:selected_game, selected_game)
+      |> assign(:user_progress, user_progress)
+      |> assign(:crossword_clues, nil)
+      |> assign(:crossword_generation_status, :not_started)
 
       welcome_timer = Process.send_after(self(), :start_review, 5000)
       socket = assign(socket, :welcome_timer, welcome_timer)
@@ -107,19 +120,25 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
             </ul>
             <div class="flex flex-col space-y-4 flex-2 mx-8">
               <button phx-click="restart" class="flex-1 px-4 py-2 bg-secondary text-white gem-btn secondary">Review Again</button>
-              <button phx-click="start_game" class="flex-4 px-4 py-2 bg-accent text-white gem-btn accent">Start Spelling Game</button>
+              <%= if @selected_game == "crossword" and @crossword_generation_status == :generating do %>
+                <button disabled class="flex-4 px-4 py-2 bg-base-300 text-base-content gem-btn">
+                  <span class="loading loading-spinner loading-sm"></span>
+                  Preparing Crossword...
+                </button>
+              <% else %>
+                <button phx-click="start_game" class="flex-4 px-4 py-2 bg-accent text-white gem-btn accent">Start Spelling Game</button>
+              <% end %>
             </div>
           </div>
       <% end %>
       <div>
-              <a href={"/student/spelling_games/hangman?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="text-sm text-accent underline">Debug: Hangman</a>
-              <a href={"/student/spelling_games/flashcards?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Flashcards</a>
-              <a href={"/student/spelling_games/matching?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Matching</a>
-              <a href={"/student/spelling_games/word_search?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Word Search</a>
-              <a href={"/student/spelling_games/crossword?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Crossword</a>
-              <a href={"/student/spelling_games/unscramble?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Unscramble</a>
-              <a href={"/student/spelling_games/catch_it?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Catch It</a>
-
+        <a href={"/student/spelling_games/hangman?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="text-sm text-accent underline">Debug: Hangman</a>
+        <a href={"/student/spelling_games/flashcards?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Flashcards</a>
+        <a href={"/student/spelling_games/matching?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Matching</a>
+        <a href={"/student/spelling_games/word_search?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Word Search</a>
+        <a href={"/student/spelling_games/crossword?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Crossword</a>
+        <a href={"/student/spelling_games/unscramble?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Unscramble</a>
+        <a href={"/student/spelling_games/catch_it?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Catch It</a>
       </div>
     </div> 
     """
@@ -180,19 +199,89 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
   end
 
   def handle_event("start_game", _params, socket) do
-    game_type = ElixirAndrew.SpellingGames.select_game(
-      socket.assigns.game_history,
-      "spelling"
-    )
+    game = socket.assigns.selected_game
     
-    # Encode spelling words to pass them to the game
-    words_param = URI.encode_query(%{"spelling_words" => Enum.join(socket.assigns.spelling_words, ",")})
+    # For crossword, check if clues are ready
+    if game == "crossword" do
+      case socket.assigns.crossword_generation_status do
+        :ready -> 
+          # Clues ready, navigate with flash data
+          socket = put_flash(socket, :crossword_clues, Jason.encode!(socket.assigns.crossword_clues))
+          query_params = %{"spelling_words" => Enum.join(socket.assigns.spelling_words, ",")}
+          words_param = URI.encode_query(query_params)
+          
+          {:noreply, push_navigate(socket, to: "/student/spelling_games/crossword?#{words_param}")}
+        
+        :generating ->
+          # Still generating, stay on this page with loading indicator
+          {:noreply, socket}
+        
+        :failed ->
+          # Failed, pick fallback
+          fallback = GameSelector.select_fallback_game(socket.assigns.game_history)
+          query_params = %{"spelling_words" => Enum.join(socket.assigns.spelling_words, ",")}
+          words_param = URI.encode_query(query_params)
+          
+          socket = put_flash(socket, :error, "Crossword generation failed, playing #{fallback} instead")
+          {:noreply, push_navigate(socket, to: "/student/spelling_games/#{fallback}?#{words_param}")}
+        
+        _ ->
+          # Not started, shouldn't happen but handle it
+          {:noreply, socket}
+      end
+    else
+      # Non-crossword game, navigate immediately
+      query_params = %{"spelling_words" => Enum.join(socket.assigns.spelling_words, ",")}
+      words_param = URI.encode_query(query_params)
+      
+      {:noreply, push_navigate(socket, to: "/student/spelling_games/#{game}?#{words_param}")}
+    end
+  end
+
+  def handle_info(:generate_crossword_clues, socket) do
+    # Start async task to generate clues
+    parent = self()
+    spelling_words = socket.assigns.spelling_words
+    user_progress = socket.assigns.user_progress
     
-    {:noreply, 
-      push_navigate(socket, 
-        to: "/student/spelling_games/#{game_type}?#{words_param}"
+    Task.start(fn ->
+      result = ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator.get_crossword_clues(
+        spelling_words,
+        user_progress
       )
-    }
+      send(parent, {:crossword_clues_ready, result})
+    end)
+    
+    {:noreply, assign(socket, :crossword_generation_status, :generating)}
+  end
+  
+  def handle_info({:crossword_clues_ready, {:ok, clues}}, socket) do
+    IO.inspect(clues, label: "Crossword clues generated successfully")
+    
+    socket = assign(socket, crossword_clues: clues, crossword_generation_status: :ready)
+    
+    # Auto-navigate if user is on completed view (waiting to play)
+    if socket.assigns.view_state == :completed and socket.assigns.selected_game == "crossword" do
+      query_params = %{"spelling_words" => Enum.join(socket.assigns.spelling_words, ",")}
+      words_param = URI.encode_query(query_params)
+      
+      socket = put_flash(socket, :crossword_clues, Jason.encode!(clues))
+      {:noreply, push_navigate(socket, to: "/student/spelling_games/crossword?#{words_param}")}
+    else
+      {:noreply, socket}
+    end
+  end
+  
+  def handle_info({:crossword_clues_ready, {:error, reason}}, socket) do
+    IO.inspect(reason, label: "Failed to generate crossword clues")
+    
+    # Select a new game that doesn't require AI generation
+    fallback_game = GameSelector.select_fallback_game(socket.assigns.game_history)
+    
+    {:noreply, assign(socket, 
+      crossword_generation_status: :failed,
+      selected_game: fallback_game
+    )}
   end
 
   def handle_info(:start_review, socket) do

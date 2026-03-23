@@ -1,4 +1,4 @@
-defmodule ElixirAndrewWeb.Live.Student.AI.Schemas.CrosswordSchema do
+defmodule ElixirAndrewWeb.Student.AI.Schemas.CrosswordSchema do
   @moduledoc """
   Defines the expected JSON structure for AI-generated crossword clues.
   """

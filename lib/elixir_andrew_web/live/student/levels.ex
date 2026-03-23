@@ -1,4 +1,4 @@
-defmodule ElixirAndrewWeb.Live.Student.Levels do
+defmodule ElixirAndrewWeb.Student.Levels do
   @moduledoc """
   Provides level descriptions for AI context when generating content for students.
   Level format: "grade/proficiency" (e.g., "6/B1")

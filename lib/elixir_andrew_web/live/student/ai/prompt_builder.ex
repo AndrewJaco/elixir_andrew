@@ -1,5 +1,5 @@
-defmodule ElixirAndrewWeb.Live.AI.PromptBuilder do
-  alias ElixirAndrewWeb.Live.Student.Levels
+defmodule ElixirAndrewWeb.Student.AI.PromptBuilder do
+  alias ElixirAndrewWeb.Student.Levels
 
   @doc """
   Build prompt for crossword clue generation.

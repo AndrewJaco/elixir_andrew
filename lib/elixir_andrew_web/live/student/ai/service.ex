@@ -1,4 +1,4 @@
-defmodule ElixirAndrewWeb.Live.Student.AI.Service do
+defmodule ElixirAndrewWeb.Student.AI.Service do
   @moduledoc """
   Generic AI service for all educational content generation.
   Handles OpenAI API calls, schema validation, and error handling.
@@ -8,8 +8,8 @@ defmodule ElixirAndrewWeb.Live.Student.AI.Service do
   alias LangChain.Chains.LLMChain
   alias LangChain.Message
   alias LangChain.Message.ContentPart
-  alias ElixirAndrewWeb.Live.AI.PromptBuilder
-  alias ElixirAndrewWeb.Live.Student.AI.Schemas
+  alias ElixirAndrewWeb.Student.AI.PromptBuilder
+  alias ElixirAndrewWeb.Student.AI.Schemas
 
   @doc """
   Generate crossword clues for spelling words.

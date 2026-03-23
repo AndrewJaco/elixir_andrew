@@ -1,10 +1,11 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
   use ElixirAndrewWeb, :live_view
-  alias ElixirAndrewWeb.Live.SpellingGames.CrosswordGenerator
+  alias ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator
+  alias ElixirAndrewWeb.Student.SpellingGames.Crossword.PlacedWord
   require Logger
 
   @impl true
-  def mount(params, _session, socket) do
+  def mount(params, session, socket) do
     spelling_words = case params["spelling_words"] do
       nil -> []
       words when is_binary(words) -> 
@@ -16,17 +17,34 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
       words when is_list(words) -> words
     end
     
+    # Check if clues were pre-generated and passed via flash
+    pregenerated_clues = case Map.get(session, "flash") do
+      %{"crossword_clues" => encoded_clues} when is_binary(encoded_clues) ->
+        case Jason.decode(encoded_clues) do
+          {:ok, clues} -> clues
+          _ -> nil
+        end
+      _ -> nil
+    end
+    
     socket =
       socket
       |> assign(:spelling_words, spelling_words)
-      |> assign(:game_state, :loading)
+      |> assign(:game_state, if(pregenerated_clues, do: :ready, else: :loading))
       |> assign(:error, nil)
-      |> assign(:words_with_clues, nil)
+      |> assign(:words_with_clues, pregenerated_clues)
+      |> assign(:grid_state, nil)
+      |> assign(:placed_word_list, [])
       |> assign(:initialized, false)
 
     # Only initialize on first mount, not on reconnects
-    if connected?(socket) do
-      send(self(), :initialize_game)
+    if connected?(socket) and not socket.assigns.initialized do
+      if pregenerated_clues do
+        send(self(), :generate_grid)
+      else
+        # No clues - either debug link or navigation error
+        send(self(), :initialize_game)
+      end
     end
 
     {:ok, socket}
@@ -66,7 +84,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
 
   @impl true
   def handle_info(:initialize_game, socket) do
-    Logger.info("Initializing crossword game...")
+    Logger.info("Initializing crossword game (generating clues)...")
     
     spelling_words = socket.assigns.spelling_words
     user_id = socket.assigns.current_user.id
@@ -78,48 +96,55 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
           assign(socket, game_state: :error, error: "No progress found", initialized: true)
         
         progress ->
-          case CrosswordGenerator.generate_crossword(spelling_words, progress) do
-            {:ok, words_with_clues} ->
-              Logger.info("Crossword generated successfully!")
-              assign(socket, words_with_clues: words_with_clues, game_state: :in_progress, initialized: true)
+          # Generate clues first
+          case CrosswordGenerator.get_crossword_clues(spelling_words, progress) do
+            {:ok, clues} ->
+              Logger.info("✓ Clues generated, now generating grid...")
+              send(self(), :generate_grid)
+              assign(socket, words_with_clues: clues, game_state: :loading)
             
             {:error, reason} ->
-              Logger.error("Failed to generate crossword: #{inspect(reason)}")
+              Logger.error("✗ Failed to generate clues: #{inspect(reason)}")
               assign(socket, game_state: :error, error: reason, initialized: true)
           end
       end
 
     {:noreply, socket}
+  end
+  
+  @impl true
+  def handle_info(:generate_grid, socket) do
+    Logger.info("Generating crossword grid...")
+    
+    words_with_clues = socket.assigns.words_with_clues
+    
+    socket = case CrosswordGenerator.generate(words_with_clues) do
+      {:ok, grid_state} ->
+        Logger.info("✓ Grid generated successfully!")
+        socket
+        |> assign(:grid_state, grid_state.grid)
+        |> process_placements(grid_state.placements)
+        |> assign(:game_state, :in_progress)
+        |> assign(:initialized, true)
+      
+      :fail ->
+        Logger.error("✗ Failed to generate grid layout")
+        socket
+        |> assign(:game_state, :error)
+        |> assign(:error, "Could not create crossword layout")
+        |> assign(:initialized, true)
+    end
 
+    {:noreply, socket}
   end
 
-  # defp initialize_game(socket) do
-  #   Logger.info("Initializing crossword game...")
-    
-  #   spelling_words = socket.assigns.spelling_words
-  #   user_id = socket.assigns.current_user.id
-    
-  #   case ElixirAndrew.Progress.get_user_progress(user_id) do
-  #     nil ->
-  #       Logger.error("No progress found for user #{user_id}")
-  #       assign(socket, game_state: :error, error: "No progress found")
+  defp process_placements(socket, placements) do
+
+    Enum.each(placements, fn placement ->
+      Logger.info("Placed word '#{placement.word}' at #{placement.row},#{placement.col} (#{placement.direction})")
       
-  #     progress ->
-  #       case CrosswordGenerator.generate_crossword(spelling_words, progress) do
-  #         {:ok, words_with_clues} ->
-  #           Logger.info("Crossword generated successfully!")
-  #           socket
-  #             |> assign(:words_with_clues, words_with_clues)
-  #             |> assign(:game_state, :in_progress)
-  #             |> assign(:initialized, true)
-          
-  #         {:error, reason} ->
-  #           Logger.error("Failed to generate crossword: #{inspect(reason)}")
-  #           socket
-  #             |> assign(:game_state, :error)
-  #             |> assign(:error, reason)
-  #             |> assign(:initialized, true)
-  #       end
-  #   end
-  # end
+    end)
+
+    socket
+  end
 end

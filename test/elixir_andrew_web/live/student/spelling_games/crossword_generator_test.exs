@@ -1,7 +1,7 @@
-defmodule ElixirAndrewWeb.Live.SpellingGames.CrosswordGeneratorTest do
+defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordGeneratorTest do
   use ExUnit.Case, async: true
   
-  alias ElixirAndrewWeb.Live.SpellingGames.CrosswordGenerator
+  alias ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator
 
   describe "generate/1" do
     test "generates crossword with simple words" do
@@ -45,10 +45,9 @@ defmodule ElixirAndrewWeb.Live.SpellingGames.CrosswordGeneratorTest do
       {:ok, state} = CrosswordGenerator.generate(words_clues)
 
       [placement] = state.placements
-      grid_size = CrosswordGenerator.grid_size()
       
-      # First word should be centered
-      assert placement.row == div(grid_size, 2)
+      # First word should be centered in the dynamic grid
+      assert placement.row == div(state.grid_size, 2)
       assert placement.direction == :across
     end
 
@@ -211,12 +210,6 @@ defmodule ElixirAndrewWeb.Live.SpellingGames.CrosswordGeneratorTest do
       # Longest word should be placed first (in center)
       first_placement = List.last(state.placements)
       assert first_placement.word == "ELEPHANT"
-    end
-  end
-
-  describe "grid_size/0" do
-    test "returns configured grid size" do
-      assert CrosswordGenerator.grid_size() == 15
     end
   end
 
