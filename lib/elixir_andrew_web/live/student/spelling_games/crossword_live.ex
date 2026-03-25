@@ -1,7 +1,7 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
   use ElixirAndrewWeb, :live_view
   alias ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator
-  alias ElixirAndrewWeb.Student.SpellingGames.Crossword.PlacedWord
+  alias ElixirAndrewWeb.Student.SpellingGames.Crossword.{PlacedWord, ClueCache}
   require Logger
 
   @impl true
@@ -17,13 +17,9 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
       words when is_list(words) -> words
     end
     
-    # Check if clues were pre-generated and passed via flash
-    pregenerated_clues = case Map.get(session, "flash") do
-      %{"crossword_clues" => encoded_clues} when is_binary(encoded_clues) ->
-        case Jason.decode(encoded_clues) do
-          {:ok, clues} -> clues
-          _ -> nil
-        end
+    # Check if clues were pre-generated and retrieve from cache
+    pregenerated_clues = case params["clue_cache_key"] do
+      key when is_binary(key) -> ClueCache.pop(key)
       _ -> nil
     end
     
@@ -34,7 +30,8 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
       |> assign(:error, nil)
       |> assign(:words_with_clues, pregenerated_clues)
       |> assign(:grid_state, nil)
-      |> assign(:placed_word_list, [])
+      |> assign(:grid_size, nil)
+      |> assign(:placed_wordlist, [])
       |> assign(:initialized, false)
 
     # Only initialize on first mount, not on reconnects
@@ -59,17 +56,34 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
       <%= case @game_state do %>
         <% :loading -> %>
           <div class="text-xl">Loading crossword puzzle...</div>
-        
+        <% :ready -> %>
+          <div class="text-xl">Loading crossword puzzle...</div>
         <% :in_progress -> %>
           <div>
             <h2 class="text-xl font-semibold mb-4">Generated Clues (Test)</h2>
-            <ul class="space-y-2">
-              <%= for word <- @words_with_clues do %>
-                <li class="border p-2 rounded">
-                  <strong><%= word["word"] %>:</strong> <%= word["clue"] %>
-                </li>
-              <% end %>
-            </ul>
+            <div class="flex gap-8 border p-4 border-accent">
+              <div>
+                <h3 class="text-lg font-semibold mb-2">Across</h3>
+                <ul class="space-y-2">
+                  <%= for word <- @placed_wordlist, word.direction == :across do %>
+                    <li class="border p-2 rounded">
+                      <strong>#<%= word.number %> - <%= word.word %>:</strong> <%= word.clue %>
+                    </li>
+                  <% end %>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="text-lg font-semibold mb-2">Down</h3>
+                <ul class="space-y-2">
+                  <%= for word <- @placed_wordlist, word.direction == :down do %>
+                    <li class="border p-2 rounded">
+                      <strong>#<%= word.number %> - <%= word.word %>:</strong> <%= word.clue %>
+                    </li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
           </div>
         
         <% :error -> %>
@@ -123,7 +137,8 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
         Logger.info("✓ Grid generated successfully!")
         socket
         |> assign(:grid_state, grid_state.grid)
-        |> process_placements(grid_state.placements)
+        |> assign(:placed_wordlist, grid_state.placements)
+        |> assign(:grid_size, grid_state.grid_size)
         |> assign(:game_state, :in_progress)
         |> assign(:initialized, true)
       

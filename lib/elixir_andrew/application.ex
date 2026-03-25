@@ -16,6 +16,8 @@ defmodule ElixirAndrew.Application do
       {Finch, name: ElixirAndrew.Finch},
       # Start a worker by calling: ElixirAndrew.Worker.start_link(arg)
       # {ElixirAndrew.Worker, arg},
+      # Cache for pre-generated crossword clues
+      ElixirAndrewWeb.Student.SpellingGames.Crossword.ClueCache,
       # Start to serve requests, typically the last entry
       ElixirAndrewWeb.Endpoint
     ]

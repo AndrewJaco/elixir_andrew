@@ -1,6 +1,7 @@
 defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
   use ElixirAndrewWeb, :live_view
   alias ElixirAndrewWeb.Student.SpellingGames.GameSelector
+  alias ElixirAndrewWeb.Student.SpellingGames.Crossword.ClueCache
 
   def mount(params, _session, socket) do
     student_id = socket.assigns.current_user.id
@@ -22,42 +23,50 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
       _ -> []
     end
     
-    user_progress = ElixirAndrew.Progress.get_user_progress(student_id)
-    game_history = if user_progress, do: user_progress.game || [], else: []
-    
-    selected_game = GameSelector.select_game(game_history, "spelling")
-
-    case selected_game do
-      "crossword" -> #run the crossword_clue_generator and save to assigns async
-        send(self(), :generate_crossword_clues)
-      _ -> :ok
-    end
-
-    IO.inspect(user_progress, label: "User progress for #{student_id}")
-    IO.inspect(game_history, label: "Game history")
-    IO.inspect(spelling_words, label: "Spelling words for review")
-
-      socket = socket
+    socket = socket
       |> assign(:student_id, student_id)
       |> assign(:spelling_words, spelling_words)
       |> assign(:current_index, -1)
       |> assign(:current_word, List.first(spelling_words))
       |> assign(:current_text, "Review first!")
-      |> assign(:game_history, game_history)
       |> assign(:timer_ref, nil)
       |> assign(:auto_advance, true)
       |> assign(:view_state, :welcome)
       |> assign(:timer_progress, 0)
       |> assign(:progress_timer_ref, nil)
-      |> assign(:selected_game, selected_game)
-      |> assign(:user_progress, user_progress)
       |> assign(:crossword_clues, nil)
       |> assign(:crossword_generation_status, :not_started)
 
-      welcome_timer = Process.send_after(self(), :start_review, 5000)
-      socket = assign(socket, :welcome_timer, welcome_timer)
+    # Only select game on connected mount to avoid double selection
+    if connected?(socket) do
+      user_progress = ElixirAndrew.Progress.get_user_progress(student_id)
+      game_history = if user_progress, do: user_progress.game || [], else: []
+      
+      selected_game = GameSelector.select_game(game_history, "spelling")
+      IO.puts("Selected Game: #{selected_game}")
 
+      socket = socket
+        |> assign(:game_history, game_history)
+        |> assign(:selected_game, selected_game)
+        |> assign(:user_progress, user_progress)
+
+      # Start background generation for crossword if selected
+      if selected_game == "crossword" do
+        send(self(), :generate_crossword_clues)
+      end
+
+      welcome_timer = Process.send_after(self(), :start_review, 5000)
+      {:ok, assign(socket, :welcome_timer, welcome_timer)}
+    else
+      # Disconnected mount - set defaults
+      socket = socket
+        |> assign(:game_history, [])
+        |> assign(:selected_game, nil)
+        |> assign(:user_progress, nil)
+        |> assign(:welcome_timer, nil)
+      
       {:ok, socket}
+    end
   end
 
   def render(assigns) do
@@ -205,9 +214,12 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
     if game == "crossword" do
       case socket.assigns.crossword_generation_status do
         :ready -> 
-          # Clues ready, navigate with flash data
-          socket = put_flash(socket, :crossword_clues, Jason.encode!(socket.assigns.crossword_clues))
-          query_params = %{"spelling_words" => Enum.join(socket.assigns.spelling_words, ",")}
+          # Clues ready, store in cache and navigate with cache key
+          cache_key = ClueCache.put(socket.assigns.student_id, socket.assigns.crossword_clues)
+          query_params = %{
+            "spelling_words" => Enum.join(socket.assigns.spelling_words, ","),
+            "clue_cache_key" => cache_key
+          }
           words_param = URI.encode_query(query_params)
           
           {:noreply, push_navigate(socket, to: "/student/spelling_games/crossword?#{words_param}")}
@@ -262,10 +274,13 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
     
     # Auto-navigate if user is on completed view (waiting to play)
     if socket.assigns.view_state == :completed and socket.assigns.selected_game == "crossword" do
-      query_params = %{"spelling_words" => Enum.join(socket.assigns.spelling_words, ",")}
+      cache_key = ClueCache.put(socket.assigns.student_id, clues)
+      query_params = %{
+        "spelling_words" => Enum.join(socket.assigns.spelling_words, ","),
+        "clue_cache_key" => cache_key
+      }
       words_param = URI.encode_query(query_params)
       
-      socket = put_flash(socket, :crossword_clues, Jason.encode!(clues))
       {:noreply, push_navigate(socket, to: "/student/spelling_games/crossword?#{words_param}")}
     else
       {:noreply, socket}

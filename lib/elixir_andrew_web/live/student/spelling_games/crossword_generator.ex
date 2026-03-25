@@ -57,7 +57,11 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator do
       grid_size: dynamic_grid_size
     }
 
-    solve(state, entries)
+    case solve(state, entries) do
+      {:ok, final_state} -> 
+        {:ok, %{final_state | placements: sort_and_number_wordlist(final_state.placements)}}
+      other -> other
+    end
   end
     
   defp normalize_word(word) do
@@ -120,7 +124,6 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator do
     row = div(grid_size, 2)
     col = div(grid_size, 2) - div(String.length(word), 2)
     
-    # With dynamic grid sizing, this should always be valid
     [%{row: row, col: col, dir: :across}]
   end
 
@@ -288,5 +291,31 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator do
         | grid: new_grid,
           placements: [placed_entry | state.placements]
       }
+  end
+
+  defp sort_and_number_wordlist(placements) do
+    # Sort by row then column (reading order)
+    sorted = Enum.sort_by(placements, fn p -> {p.row, p.col} end)
+    
+    # Group by starting position to assign shared numbers
+    sorted
+    |> Enum.reduce({[], %{}, 1}, fn placement, {numbered, position_map, next_num} ->
+      position = {placement.row, placement.col}
+      
+      {number, new_map, new_next} = 
+        case Map.get(position_map, position) do
+          nil -> 
+            # New position, assign new number
+            {next_num, Map.put(position_map, position, next_num), next_num + 1}
+          existing_num -> 
+            # Same position as previous word, reuse number
+            {existing_num, position_map, next_num}
+        end
+      
+      numbered_placement = Map.put(placement, :number, number)
+      {[numbered_placement | numbered], new_map, new_next}
+    end)
+    |> elem(0)
+    |> Enum.reverse()
   end
 end
