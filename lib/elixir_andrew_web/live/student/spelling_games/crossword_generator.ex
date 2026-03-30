@@ -1,20 +1,24 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator do
   alias ElixirAndrewWeb.Student.AI.Service
+  alias ElixirAndrew.ClassSession
   require Logger
 
   @grid_size 15
-  @candidate_limit 6
-  @parallel_branches 4
-  @max_span 12
+  @candidate_limit 20
+  @parallel_branches 3 
+  @min_words 10 
 
 
   @spec get_crossword_clues(list(String.t()), map()) :: {:ok, list(map())} | {:error, term()}
   def get_crossword_clues(spelling_words, progress) do
     Logger.info("=== Crossword Generator Test ===")
-    Logger.info("Spelling words: #{inspect(spelling_words)}")
+    Logger.info("Original spelling words (#{length(spelling_words)}): #{inspect(spelling_words)}")
+    
+    # Pad word list if needed
+    padded_words = pad_word_list(spelling_words, progress)
 
     # TEMPORARY: Return mock data to test without AI call
-    mock_words_with_clues = Enum.map(spelling_words, fn word ->
+    mock_words_with_clues = Enum.map(padded_words, fn word ->
       %{"word" => word, "clue" => "Mock clue for #{word}"}
     end)
     
@@ -22,7 +26,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator do
     {:ok, mock_words_with_clues}
 
     # Uncomment below to make actual AI call:
-    # case Service.get_crossword_clues(spelling_words, progress, max_words: 12) do
+    # case Service.get_crossword_clues(padded_words, progress, max_words: 12) do
     #   {:ok, %{"words" => words_with_clues}} ->
     #     Logger.info("✓ AI Response received!")
     #     Logger.info("Words with clues: #{inspect(words_with_clues, pretty: true)}")
@@ -32,6 +36,27 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator do
     #     Logger.error("✗ AI call failed: #{inspect(reason)}")
     #     {:error, reason}
     # end
+  end
+  
+  defp pad_word_list(words, progress) when length(words) >= @min_words, do: words
+  
+  defp pad_word_list(words, progress) do
+    needed = @min_words - length(words)
+    
+    # Get previous spelling words from student's class sessions
+    student_id = Map.get(progress, :user_id)
+    
+    previous_words = if student_id do
+      ClassSession.list_class_sessions(student_id, 10)  # Get last 10 sessions
+      |> Enum.flat_map(fn session -> session.spelling_words || [] end)
+      |> Enum.reject(fn word -> word in words end)  # Remove duplicates
+      |> Enum.sort_by(&String.length/1, :desc)  # Prioritize longer words
+      |> Enum.take(needed)
+    else
+      []
+    end
+    
+    words ++ previous_words
   end
 
   def generate(words_clues) do
@@ -48,19 +73,30 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator do
       |> Enum.map(&String.length(&1.word))
       |> Enum.max(fn -> 0 end)
     
-    # Grid size should be at least the longest word length + 2 for padding
-    dynamic_grid_size = max(longest_word_length + 2, @grid_size)
+    # Give more room - at least longest word + 4 for better placement options
+    dynamic_grid_size = max(longest_word_length + 4, @grid_size)
+    
+    Logger.info("Grid size: #{dynamic_grid_size}")
 
     state = %{
       grid: %{},
       placements: [],
-      grid_size: dynamic_grid_size
+      grid_size: dynamic_grid_size,
+      grid_rows: dynamic_grid_size,
+      grid_cols: dynamic_grid_size
     }
 
     case solve(state, entries) do
       {:ok, final_state} -> 
-        {:ok, %{final_state | placements: sort_and_number_wordlist(final_state.placements)}}
-      other -> other
+        Logger.info("✓ Successfully placed #{length(final_state.placements)} words")
+        
+        # Compact the grid by removing empty rows/columns
+        compacted_state = compact_grid(final_state)
+        
+        {:ok, %{compacted_state | placements: sort_and_number_wordlist(compacted_state.placements)}}
+      :fail -> 
+        Logger.error("✗ Failed to place all words (only placed #{length(state.placements)})")
+        :fail
     end
   end
     
@@ -75,39 +111,34 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator do
 
   defp solve(state, [entry | rest]) do
     word = entry.word
+    
     placements =
       generate_candidates(word, state.grid, state.grid_size)
       |> Enum.sort_by(&score(word, &1, state.grid), :desc)
       |> Enum.take(@candidate_limit)
-      
-    try_placements(state, entry, rest, placements)
+    
+    case try_placements(state, entry, rest, placements) do
+      {:ok, result} -> {:ok, result}
+      :fail -> 
+        Logger.debug("✗ Failed to place '#{word}'")
+        :fail
+    end
   end
   
   defp try_placements(_state, _entry, _rest, []), do: :fail
   
   defp try_placements(state, entry, rest, placements) do
+    # Try placements sequentially with early termination
     placements
-    |> Enum.take(@parallel_branches)
-    |> Task.async_stream(
-      fn placement -> 
-        new_state = place_word(state, entry, placement)
-
-        case solve(new_state, rest) do
-          {:ok, result} -> {:ok, result}
-          _ -> :fail
-        end
-      end,
-      timeout: 5000,
-      ordered: false
-    )
-    |> Enum.find_value(fn
-      {:ok, {:ok, result}} -> {:ok, result}
-      _ -> nil
+    |> Enum.take(@candidate_limit)
+    |> Enum.reduce_while(:fail, fn placement, _acc ->
+      new_state = place_word(state, entry, placement)
+      
+      case solve(new_state, rest) do
+        {:ok, result} -> {:halt, {:ok, result}}
+        :fail -> {:cont, :fail}
+      end
     end)
-    |> case do
-      nil -> :fail
-      result -> result
-    end
   end
 
   # candidate generation
@@ -214,6 +245,41 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator do
     Enum.any?(adjacent_coords, fn coord ->
       Map.has_key?(grid, coord)
     end)
+  end
+  
+  # Compact grid by removing empty rows/columns and shifting coordinates
+  defp compact_grid(state) do
+    if map_size(state.grid) == 0 do
+      state
+    else
+      # Find bounding box of all placed letters
+      {min_row, max_row, min_col, max_col} = bounding_box(state.grid)
+      
+      row_offset = min_row
+      col_offset = min_col
+      
+      # Shift grid coordinates
+      new_grid = 
+        state.grid
+        |> Enum.map(fn {{r, c}, letter} -> {{r - row_offset, c - col_offset}, letter} end)
+        |> Map.new()
+      
+      # Shift placement coordinates
+      new_placements = 
+        Enum.map(state.placements, fn placement ->
+          %{placement | row: placement.row - row_offset, col: placement.col - col_offset}
+        end)
+      
+      grid_rows = max_row - min_row + 1
+      grid_cols = max_col - min_col + 1
+      
+      %{state | 
+        grid: new_grid, 
+        placements: new_placements, 
+        grid_rows: grid_rows, 
+        grid_cols: grid_cols
+      }
+    end
   end
     
   # placement scoring

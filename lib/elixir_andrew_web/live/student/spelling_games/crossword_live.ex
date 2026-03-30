@@ -30,7 +30,8 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
       |> assign(:error, nil)
       |> assign(:words_with_clues, pregenerated_clues)
       |> assign(:grid_state, nil)
-      |> assign(:grid_size, nil)
+      |> assign(:grid_rows, nil)
+      |> assign(:grid_cols, nil)
       |> assign(:placed_wordlist, [])
       |> assign(:initialized, false)
 
@@ -60,14 +61,32 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
           <div class="text-xl">Loading crossword puzzle...</div>
         <% :in_progress -> %>
           <div>
-            <h2 class="text-xl font-semibold mb-4">Generated Clues (Test)</h2>
+            <div class="flex justify-center pb-8">
+              <%!-- grid --%>
+              <div 
+                class="crossword-grid inline-grid border-2 border-accent"
+                style={"grid-template-columns: repeat(#{@grid_cols}, 40px); grid-template-rows: repeat(#{@grid_rows}, 40px);"}
+              >
+                <%= for cell <- @grid_state do %>
+                  <div class={"relative w-10 h-10 border border-gray-400 flex items-center justify-center #{if cell.filled, do: "bg-white", else: "bg-black"}"}>
+                    <%= if cell.number do %>
+                      <span class="absolute top-0 left-0 text-xs p-0.5"><%= cell.number %></span>
+                    <% end %>
+                    <%= if cell.letter do %>
+                      <span class="text-lg font-bold"><%= cell.letter %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+
+            </div>
             <div class="flex gap-8 border p-4 border-accent">
               <div>
                 <h3 class="text-lg font-semibold mb-2">Across</h3>
-                <ul class="space-y-2">
+                <ul class="border space-y-2">
                   <%= for word <- @placed_wordlist, word.direction == :across do %>
-                    <li class="border p-2 rounded">
-                      <strong>#<%= word.number %> - <%= word.word %>:</strong> <%= word.clue %>
+                    <li class="p-2">
+                      <strong>#<%= word.number %>:</strong> <%= word.clue %>
                     </li>
                   <% end %>
                 </ul>
@@ -75,10 +94,10 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
 
               <div>
                 <h3 class="text-lg font-semibold mb-2">Down</h3>
-                <ul class="space-y-2">
+                <ul class="border space-y-2">
                   <%= for word <- @placed_wordlist, word.direction == :down do %>
-                    <li class="border p-2 rounded">
-                      <strong>#<%= word.number %> - <%= word.word %>:</strong> <%= word.clue %>
+                    <li class="p-2">
+                      <strong>#<%= word.number %>:</strong> <%= word.clue %>
                     </li>
                   <% end %>
                 </ul>
@@ -135,10 +154,15 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
     socket = case CrosswordGenerator.generate(words_with_clues) do
       {:ok, grid_state} ->
         Logger.info("✓ Grid generated successfully!")
+        
+        # Convert sparse grid to full 2D array
+        full_grid = build_full_grid(grid_state.grid, grid_state.grid_rows, grid_state.grid_cols, grid_state.placements)
+        
         socket
-        |> assign(:grid_state, grid_state.grid)
+        |> assign(:grid_state, full_grid)
         |> assign(:placed_wordlist, grid_state.placements)
-        |> assign(:grid_size, grid_state.grid_size)
+        |> assign(:grid_rows, grid_state.grid_rows)
+        |> assign(:grid_cols, grid_state.grid_cols)
         |> assign(:game_state, :in_progress)
         |> assign(:initialized, true)
       
@@ -153,13 +177,28 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
     {:noreply, socket}
   end
 
-  defp process_placements(socket, placements) do
-
-    Enum.each(placements, fn placement ->
-      Logger.info("Placed word '#{placement.word}' at #{placement.row},#{placement.col} (#{placement.direction})")
+  defp build_full_grid(sparse_grid, grid_rows, grid_cols, placements) do
+    # Create a flat list of all cells in row-major order
+    for row <- 0..(grid_rows - 1),
+        col <- 0..(grid_cols - 1) do
       
-    end)
-
-    socket
+      letter = Map.get(sparse_grid, {row, col})
+      
+      # Find if this cell is the start of any word
+      number = placements
+        |> Enum.find(fn p -> p.row == row and p.col == col end)
+        |> case do
+          nil -> nil
+          placement -> placement.number
+        end
+      
+      %{
+        row: row,
+        col: col,
+        letter: letter,
+        number: number,
+        filled: letter != nil
+      }
+    end
   end
 end
