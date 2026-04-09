@@ -230,7 +230,7 @@
   }
 }
 
-.wordsearch-game {
+.word-search-game {
   animation: fade-out-in 2s forwards;
 }
 
@@ -289,3 +289,4 @@
     background-color: var(--color-alert);
   }
 }
+

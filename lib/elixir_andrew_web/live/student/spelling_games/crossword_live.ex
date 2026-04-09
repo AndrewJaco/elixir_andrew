@@ -34,6 +34,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
       |> assign(:grid_cols, nil)
       |> assign(:placed_wordlist, [])
       |> assign(:initialized, false)
+      |> assign(:solved, false)
 
     # Only initialize on first mount, not on reconnects
     if connected?(socket) and not socket.assigns.initialized do
@@ -51,8 +52,8 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="crossword-game p-8">
-      <h1 class="text-3xl font-bold mb-4">Crossword Puzzle</h1>
+    <div class="crossword-game flex flex-col items-center p-8">
+      <h1 class="text-4xl font-bold mb-8">Crossword Puzzle</h1>
       
       <%= case @game_state do %>
         <% :loading -> %>
@@ -60,32 +61,72 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
         <% :ready -> %>
           <div class="text-xl">Loading crossword puzzle...</div>
         <% :in_progress -> %>
-          <div>
-            <div class="flex justify-center pb-8">
-              <%!-- grid --%>
+          <div class="flex flex-col lg:flex-row justify-center border-4 border-accent p-2 gap-4">
+            <%!-- grid --%>
+            <div class="relative">
+              <svg
+                class="absolute top-0 left-0 z-10 pointer-events-none"
+                width={@grid_cols * 40 + 1}
+                height={@grid_rows * 40 + 1}
+                id="crossword-highlight-svg"
+              >
+                <%= if @selected_word do %>
+                  <%
+                    {x, y, width, height} = case @selected_word.direction do
+                      :across -> {@selected_word.col * 40, @selected_word.row * 40, @selected_word.length * 40 + 2, 40 + 2}
+                      :down -> {@selected_word.col * 40, @selected_word.row * 40, 40 + 2, @selected_word.length * 40 + 2}
+                    end
+                  %>
+                  <rect
+                    x={x}
+                    y={y}
+                    width={width}
+                    height={height}
+                    rx="4"
+                    ry="4"
+                    fill="none"
+                    stroke="#74ede3"
+                    stroke-width="3"
+                  />
+                <% end %>
+              </svg>
+              
               <div 
-                class="crossword-grid inline-grid border-2 border-accent"
+                class="crossword-grid inline-grid mb-4 md:mb-0 border-1 border-black relative z-0"
                 style={"grid-template-columns: repeat(#{@grid_cols}, 40px); grid-template-rows: repeat(#{@grid_rows}, 40px);"}
+                phx-window-keydown="handle_key"
               >
                 <%= for cell <- @grid_state do %>
-                  <div class={"relative w-10 h-10 border border-gray-400 flex items-center justify-center #{if cell.filled, do: "bg-white", else: "bg-black"}"}>
+                  <div 
+                    class={"relative w-10 h-10 border border-black flex items-center justify-center cursor-pointer #{if cell.filled, do: "bg-white", else: "bg-black"} #{if @current_cell == {cell.row, cell.col}, do: "ring-2 ring-blue-500 ring-inset"}"}
+                    phx-click={if cell.filled, do: "select_cell"}
+                    phx-value-row={cell.row}
+                    phx-value-col={cell.col}
+                  >
                     <%= if cell.number do %>
-                      <span class="absolute top-0 left-0 text-xs p-0.5"><%= cell.number %></span>
+                      <span class="absolute top-0 left-0 text-xs p-0.5 pointer-events-none"><%= cell.number %></span>
                     <% end %>
-                    <%= if cell.letter do %>
-                      <span class="text-lg font-bold"><%= cell.letter %></span>
+                    <%= if cell.filled do %>
+                      <span class="text-lg font-bold pointer-events-none">
+                        <%= Map.get(@user_input, {cell.row, cell.col}, "") %>
+                      </span>
                     <% end %>
                   </div>
                 <% end %>
               </div>
-
+              
+              <div class="mt-4 flex gap-2 justify-center">
+                <button phx-click="check_puzzle" class="btn btn-primary">Check Puzzle</button>
+                <button phx-click="reveal_puzzle" class="btn btn-secondary">Show Solution</button>
+              </div>
             </div>
-            <div class="flex gap-8 border p-4 border-accent">
+            <%!-- clues --%>
+            <div class="flex gap-2 justify-center border p-4 border-accent">
               <div>
-                <h3 class="text-lg font-semibold mb-2">Across</h3>
-                <ul class="border space-y-2">
+                <h3 class="text-xl font-semibold mb-2">Across</h3>
+                <ul class="text-lg border space-y-2">
                   <%= for word <- @placed_wordlist, word.direction == :across do %>
-                    <li class="p-2">
+                    <li class={"p-2 #{if @selected_word == word, do: "ring-2 ring-blue-500 ring-inset-1 rounded", else: ""}"}>
                       <strong>#<%= word.number %>:</strong> <%= word.clue %>
                     </li>
                   <% end %>
@@ -93,10 +134,10 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
               </div>
 
               <div>
-                <h3 class="text-lg font-semibold mb-2">Down</h3>
-                <ul class="border space-y-2">
+                <h3 class="text-xl font-semibold mb-2">Down</h3>
+                <ul class="text-lg border space-y-2">
                   <%= for word <- @placed_wordlist, word.direction == :down do %>
-                    <li class="p-2">
+                    <li class={"p-2 #{if @selected_word == word, do: "ring-2 ring-blue-500 ring-inset-1 rounded", else: ""}"}>
                       <strong>#<%= word.number %>:</strong> <%= word.clue %>
                     </li>
                   <% end %>
@@ -109,6 +150,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
           <div class="text-red-600">
             <h2 class="text-xl font-semibold">Error</h2>
             <p>Failed to generate crossword: <%= inspect(@error) %></p>
+            <button class="btn btn-primary mt-4" phx-click="new_game">Try a new game</button>
           </div>
       <% end %>
     </div>
@@ -146,6 +188,237 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
   end
   
   @impl true
+  def handle_event("select_cell", %{"row" => row_str, "col" => col_str}, socket) do
+    row = String.to_integer(row_str)
+    col = String.to_integer(col_str)
+    
+    # Find which word(s) contain this cell
+    words_at_cell = Enum.filter(socket.assigns.placed_wordlist, fn word ->
+      cells = get_word_cells(word)
+      {row, col} in cells
+    end)
+    
+    # If clicking same cell, toggle direction; otherwise select first word
+    selected_word = case {socket.assigns.current_cell, words_at_cell} do
+      {{^row, ^col}, [word1, word2]} ->
+        # Same cell clicked, toggle between across/down
+        if socket.assigns.selected_word == word1, do: word2, else: word1
+      
+      {_, [word | _]} ->
+        word
+      
+      _ ->
+        nil
+    end
+    
+    socket = socket
+      |> assign(:selected_word, selected_word)
+      |> assign(:current_cell, {row, col})
+    
+    {:noreply, socket}
+  end
+  
+  @impl true
+  def handle_event("handle_key", %{"key" => key}, socket) do
+    cond do
+      # Letter key
+      String.match?(key, ~r/^[a-zA-Z]$/) ->
+        handle_letter_input(socket, String.upcase(key))
+      
+      # Backspace
+      key == "Backspace" ->
+        handle_backspace(socket)
+      
+      # Arrow keys for navigation
+      key in ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"] ->
+        handle_arrow_key(socket, key)
+      
+      true ->
+        {:noreply, socket}
+    end
+  end
+  
+  @impl true
+  def handle_event("check_puzzle", _params, socket) do
+    # Compare user_input with actual grid
+    correct = Enum.all?(socket.assigns.grid_state, fn cell ->
+      if cell.filled do
+        Map.get(socket.assigns.user_input, {cell.row, cell.col}) == cell.letter
+      else
+        true
+      end
+    end)
+    
+    message = if correct, do: "Congratulations! Puzzle solved correctly!", else: "Not quite right. Keep trying!"
+    
+    {:noreply, put_flash(socket, :info, message)}
+  end
+  
+  @impl true
+  def handle_event("reveal_puzzle", _params, socket) do
+    # Fill in all answers
+    user_input = 
+      socket.assigns.grid_state
+      |> Enum.filter(& &1.filled)
+      |> Enum.map(fn cell -> {{cell.row, cell.col}, cell.letter} end)
+      |> Map.new()
+    
+    {:noreply, assign(socket, :user_input, user_input)}
+  end
+  
+  defp handle_letter_input(socket, letter) do
+    if socket.assigns.selected_word && socket.assigns.current_cell do
+      {row, col} = socket.assigns.current_cell
+      
+      # Update user input
+      new_input = Map.put(socket.assigns.user_input, {row, col}, letter)
+      
+      # Move to next cell in word
+      next_cell = get_next_cell_in_word(socket.assigns.selected_word, {row, col})
+      
+      socket = socket
+        |> assign(:user_input, new_input)
+        |> assign(:current_cell, next_cell)
+      
+      {:noreply, socket}
+    else
+      {:noreply, socket}
+    end
+  end
+  
+  defp handle_backspace(socket) do
+    if socket.assigns.selected_word && socket.assigns.current_cell do
+      {row, col} = socket.assigns.current_cell
+      
+      # Clear current cell and move back
+      new_input = Map.delete(socket.assigns.user_input, {row, col})
+      prev_cell = get_prev_cell_in_word(socket.assigns.selected_word, {row, col})
+      
+      socket = socket
+        |> assign(:user_input, new_input)
+        |> assign(:current_cell, prev_cell)
+      
+      {:noreply, socket}
+    else
+      {:noreply, socket}
+    end
+  end
+  
+  defp handle_arrow_key(socket, key) do
+    key_to_direction = %{
+      "ArrowLeft" => :left,
+      "ArrowRight" => :right,
+      "ArrowUp" => :up,
+      "ArrowDown" => :down
+    }
+    direction = key_to_direction[key]
+    if socket.assigns.selected_word && socket.assigns.current_cell do
+      {row, col} = socket.assigns.current_cell
+      
+      next_cell = case direction do
+        :left -> {row, col - 1}
+        :right -> {row, col + 1}
+        :up -> {row - 1, col}
+        :down -> {row + 1, col}
+      end
+      
+      # Check if next cell is part of the selected word
+      if next_cell in get_word_cells(socket.assigns.selected_word) do
+        socket = assign(socket, :current_cell, next_cell)
+        {:noreply, socket}
+      else
+        # Try to find a word in the direction of movement
+        case find_nearest_word(socket.assigns.current_cell, direction, socket) do
+          nil ->
+            # No word found in that direction, stay put
+            {:noreply, socket}
+          
+          new_current_word ->
+            new_current_cell = 
+              get_word_cells(new_current_word) 
+              |> Enum.find(fn cell -> cell == next_cell end) 
+              || List.first(get_word_cells(new_current_word))
+            
+            socket = socket
+              |> assign(:selected_word, new_current_word)
+              |> assign(:current_cell, new_current_cell)
+            {:noreply, socket}
+        end
+      end
+    else
+      {:noreply, socket}
+    end
+  end
+
+  defp find_nearest_word(current_cell, direction, socket) do
+    {row, col} = current_cell || {0, 0}
+    
+    # Find words that have cells in the given direction
+    candidate_words = 
+      socket.assigns.placed_wordlist
+      |> Enum.map(fn word ->
+        cells = get_word_cells(word)
+        
+        # Calculate minimum distance to any cell in this word in the given direction
+        distance = 
+          cells
+          |> Enum.map(fn {r, c} ->
+            case direction do
+              :left -> if r == row and c < col, do: col - c, else: :infinity
+              :right -> if r == row and c > col, do: c - col, else: :infinity
+              :up -> if r < row and c == col, do: row - r, else: :infinity
+              :down -> if r > row and c == col, do: r - row, else: :infinity
+            end
+          end)
+          |> Enum.min()
+        
+        {word, distance}
+      end)
+      |> Enum.reject(fn {_word, distance} -> distance == :infinity end)
+    
+    # Return the word with minimum distance, or nil if no candidates
+    case candidate_words do
+      [] -> nil
+      words -> words |> Enum.min_by(fn {_word, distance} -> distance end) |> elem(0)
+    end
+  end
+  
+  defp initialize_user_input(_placements) do
+    %{}  # Empty map, keys are {row, col}, values are letters
+  end
+  
+  defp get_word_cells(word) do
+    for i <- 0..(word.length - 1) do
+      case word.direction do
+        :across -> {word.row, word.col + i}
+        :down -> {word.row + i, word.col}
+      end
+    end
+  end
+  
+  defp get_next_cell_in_word(word, {row, col}) do
+    cells = get_word_cells(word)
+    current_index = Enum.find_index(cells, fn cell -> cell == {row, col} end)
+    
+    if current_index && current_index < length(cells) - 1 do
+      Enum.at(cells, current_index + 1)
+    else
+      {row, col}  # Stay at current if at end
+    end
+  end
+  
+  defp get_prev_cell_in_word(word, {row, col}) do
+    cells = get_word_cells(word)
+    current_index = Enum.find_index(cells, fn cell -> cell == {row, col} end)
+    
+    if current_index && current_index > 0 do
+      Enum.at(cells, current_index - 1)
+    else
+      {row, col}  # Stay at current if at beginning
+    end
+  end
+  
+  @impl true  
   def handle_info(:generate_grid, socket) do
     Logger.info("Generating crossword grid...")
     
@@ -163,6 +436,10 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
         |> assign(:placed_wordlist, grid_state.placements)
         |> assign(:grid_rows, grid_state.grid_rows)
         |> assign(:grid_cols, grid_state.grid_cols)
+        |> assign(:user_input, initialize_user_input(grid_state.placements))
+        |> assign(:selected_word, nil)
+        |> assign(:selected_direction, nil)
+        |> assign(:current_cell, nil)
         |> assign(:game_state, :in_progress)
         |> assign(:initialized, true)
       
@@ -175,6 +452,15 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
     end
 
     {:noreply, socket}
+  end
+
+  defp new_game(socket) do
+    # Clear cache if there was a clue_cache_key
+    if key = socket.assigns[:clue_cache_key] do
+      ClueCache.pop(key)
+    end
+
+    {:noreply, push_navigate(socket, to: ~p"/student/spelling_review")}
   end
 
   defp build_full_grid(sparse_grid, grid_rows, grid_cols, placements) do

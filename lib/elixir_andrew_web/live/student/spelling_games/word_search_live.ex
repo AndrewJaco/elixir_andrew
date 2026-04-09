@@ -63,7 +63,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
 
     <%= if @game_state in [:in_round, :game_over] do %>
     <div 
-      class="wordsearch-game flex flex-col lg:flex-row flex-1 border-2 m-4 p-4 rounded-lg border-accent justify-center items-center gap-8"
+      class="word-search-game flex flex-col lg:flex-row flex-1 border-2 m-4 p-4 rounded-lg border-accent justify-center items-center gap-8"
       phx-hook="WordSearch"
       id="word-search-wrapper"
       data-grid={Jason.encode!(@grid_2d)}
