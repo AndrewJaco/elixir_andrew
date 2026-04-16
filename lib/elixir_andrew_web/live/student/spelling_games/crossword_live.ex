@@ -52,106 +52,158 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="crossword-game flex flex-col items-center p-8">
+    <div class="relative crossword-game flex flex-col items-center p-8">
       <h1 class="text-4xl font-bold mb-8">Crossword Puzzle</h1>
-      
-      <%= case @game_state do %>
-        <% :loading -> %>
-          <div class="text-xl">Loading crossword puzzle...</div>
-        <% :ready -> %>
-          <div class="text-xl">Loading crossword puzzle...</div>
-        <% :in_progress -> %>
-          <div class="flex flex-col lg:flex-row justify-center border-4 border-accent p-2 gap-4">
-            <%!-- grid --%>
-            <div class="relative">
-              <svg
-                class="absolute top-0 left-0 z-10 pointer-events-none"
-                width={@grid_cols * 40 + 1}
-                height={@grid_rows * 40 + 1}
-                id="crossword-highlight-svg"
-              >
-                <%= if @selected_word do %>
-                  <%
-                    {x, y, width, height} = case @selected_word.direction do
-                      :across -> {@selected_word.col * 40, @selected_word.row * 40, @selected_word.length * 40 + 2, 40 + 2}
-                      :down -> {@selected_word.col * 40, @selected_word.row * 40, 40 + 2, @selected_word.length * 40 + 2}
-                    end
-                  %>
-                  <rect
-                    x={x}
-                    y={y}
-                    width={width}
-                    height={height}
-                    rx="4"
-                    ry="4"
-                    fill="none"
-                    stroke="#74ede3"
-                    stroke-width="3"
-                  />
-                <% end %>
-              </svg>
-              
-              <div 
-                class="crossword-grid inline-grid mb-4 md:mb-0 border-1 border-black relative z-0"
-                style={"grid-template-columns: repeat(#{@grid_cols}, 40px); grid-template-rows: repeat(#{@grid_rows}, 40px);"}
-                phx-window-keydown="handle_key"
-              >
-                <%= for cell <- @grid_state do %>
-                  <div 
-                    class={"relative w-10 h-10 border border-black flex items-center justify-center cursor-pointer #{if cell.filled, do: "bg-white", else: "bg-black"} #{if @current_cell == {cell.row, cell.col}, do: "ring-2 ring-blue-500 ring-inset"}"}
-                    phx-click={if cell.filled, do: "select_cell"}
-                    phx-value-row={cell.row}
-                    phx-value-col={cell.col}
-                  >
-                    <%= if cell.number do %>
-                      <span class="absolute top-0 left-0 text-xs p-0.5 pointer-events-none"><%= cell.number %></span>
-                    <% end %>
-                    <%= if cell.filled do %>
-                      <span class="text-lg font-bold pointer-events-none">
-                        <%= Map.get(@user_input, {cell.row, cell.col}, "") %>
-                      </span>
-                    <% end %>
-                  </div>
-                <% end %>
-              </div>
-              
-              <div class="mt-4 flex gap-2 justify-center">
-                <button phx-click="check_puzzle" class="btn btn-primary">Check Puzzle</button>
-                <button phx-click="reveal_puzzle" class="btn btn-secondary">Show Solution</button>
-              </div>
-            </div>
-            <%!-- clues --%>
-            <div class="flex gap-2 justify-center border p-4 border-accent">
-              <div>
-                <h3 class="text-xl font-semibold mb-2">Across</h3>
-                <ul class="text-lg border space-y-2">
-                  <%= for word <- @placed_wordlist, word.direction == :across do %>
-                    <li class={"p-2 #{if @selected_word == word, do: "ring-2 ring-blue-500 ring-inset-1 rounded", else: ""}"}>
-                      <strong>#<%= word.number %>:</strong> <%= word.clue %>
-                    </li>
-                  <% end %>
-                </ul>
-              </div>
+      <%= if @game_state == :solved do %>
+        <.link navigate="/student/home" class="btn btn-alert text-xl w-32 h-12 absolute top-0 left-40" >Back</.link>
+      <% end %>
 
-              <div>
-                <h3 class="text-xl font-semibold mb-2">Down</h3>
-                <ul class="text-lg border space-y-2">
-                  <%= for word <- @placed_wordlist, word.direction == :down do %>
-                    <li class={"p-2 #{if @selected_word == word, do: "ring-2 ring-blue-500 ring-inset-1 rounded", else: ""}"}>
-                      <strong>#<%= word.number %>:</strong> <%= word.clue %>
-                    </li>
+      <%= if @game_state == :loading do %>
+        <div class="text-xl">Loading crossword puzzle...</div>
+      <% end %>
+      <%= if @game_state == :ready do %>
+        <div class="text-xl">Loading crossword puzzle...</div>
+      <% end %>
+
+      <%= if @game_state in [:in_progress, :try_again, :correct, :solved] do %>
+        <%!-- Input for mobile keyboard - positioned at bottom --%>
+        <input
+          type="text"
+          id="mobile-keyboard-input"
+          phx-hook="MobileKeyboard"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="characters"
+          inputmode="text"
+          class="w-1 h-1 border-0 p-0 m-0"
+          style="position: fixed; bottom: 0; left: 50%; opacity: 0.01;"
+        />
+        
+        <div class="flex flex-col lg:flex-row justify-center border-4 border-accent p-2 gap-4">
+          <%!-- grid --%>
+          <div class="relative">
+            <svg
+              class="absolute top-0 left-0 z-10 pointer-events-none"
+              width={@grid_cols * 40 + 1}
+              height={@grid_rows * 40 + 1}
+              id="crossword-highlight-svg"
+            >
+              <%= if @selected_word do %>
+                <%
+                  {x, y, width, height} = case @selected_word.direction do
+                    :across -> {@selected_word.col * 40, @selected_word.row * 40, @selected_word.length * 40 + 2, 40 + 2}
+                    :down -> {@selected_word.col * 40, @selected_word.row * 40, 40 + 2, @selected_word.length * 40 + 2}
+                  end
+                %>
+                <rect
+                  x={x}
+                  y={y}
+                  width={width}
+                  height={height}
+                  rx="4"
+                  ry="4"
+                  fill="none"
+                  stroke="#74ede3"
+                  stroke-width="3"
+                />
+              <% end %>
+            </svg>
+            
+            <div 
+              class="crossword-grid inline-grid mb-4 md:mb-0 border-1 border-black relative z-0"
+              style={"grid-template-columns: repeat(#{@grid_cols}, 40px); grid-template-rows: repeat(#{@grid_rows}, 40px);"}
+              phx-window-keydown={if @game_state != :solved, do: "handle_key"}
+            >
+              <%= for cell <- @grid_state do %>
+                <div 
+                  class={"relative w-10 h-10 border border-black flex items-center justify-center cursor-pointer #{if cell.filled, do: "bg-white", else: "bg-black"} #{if @current_cell == {cell.row, cell.col}, do: "ring-2 ring-blue-500 ring-inset"} #{if @game_state == :solved, do: "pointer-events-none", else: ""}"}
+                  phx-click={if cell.filled, do: "select_cell"}
+                  phx-value-row={cell.row}
+                  phx-value-col={cell.col}
+                  onclick="document.getElementById('mobile-keyboard-input')?.focus()"
+                >
+                  <%= if cell.number do %>
+                    <span class="absolute top-0 left-0 text-xs p-0.5 pointer-events-none"><%= cell.number %></span>
                   <% end %>
-                </ul>
-              </div>
+                  <%= if cell.filled do %>
+                    <span class="text-lg font-bold pointer-events-none">
+                      <%= Map.get(@user_input, {cell.row, cell.col}, "") %>
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+            
+            <div class="mt-4 mb-2 flex justify-center">
+              <button phx-click="check_puzzle" class="btn btn-primary">Check Puzzle</button>
+              <button phx-click="clear_puzzle" class="btn btn-secondary ml-4">Erase All</button>
             </div>
           </div>
-        
-        <% :error -> %>
-          <div class="text-red-600">
-            <h2 class="text-xl font-semibold">Error</h2>
-            <p>Failed to generate crossword: <%= inspect(@error) %></p>
-            <button class="btn btn-primary mt-4" phx-click="new_game">Try a new game</button>
+          <%!-- clues --%>
+          <div class="flex gap-2 justify-center border p-4 border-accent">
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Across</h3>
+              <ul class="text-lg border space-y-2">
+                <%= for word <- @placed_wordlist, word.direction == :across do %>
+                  <li 
+                    class={"p-2 cursor-pointer #{if @selected_word == word, do: "ring-2 ring-blue-500 ring-inset-1 rounded", else: ""}"}
+                    phx-click="select_word"
+                    phx-value-number={word.number}
+                    phx-value-direction={word.direction}
+                    onclick="document.getElementById('mobile-keyboard-input')?.focus()"
+                    >
+                    <strong><%= word.number %>:</strong> <%= word.clue %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Down</h3>
+              <ul class="text-lg border space-y-2">
+                <%= for word <- @placed_wordlist, word.direction == :down do %>
+                  <li 
+                    class={"p-2 cursor-pointer #{if @selected_word == word, do: "ring-2 ring-blue-500 ring-inset-1 rounded", else: ""}"}
+                    phx-click="select_word"
+                    phx-value-number={word.number}
+                    phx-value-direction={word.direction}
+                    onclick="document.getElementById('mobile-keyboard-input')?.focus()"
+                    >
+                    <strong><%= word.number %>:</strong> <%= word.clue %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
           </div>
+        </div>
+      <% end %>
+      <%= if @game_state == :try_again do %>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="p-20 border-2 border-alert rounded-lg text-center game-shadow bg-white">
+            <h1 class="text-3xl font-bold mb-4">Keep Trying!</h1>
+            <p class="mb-6">Check your spelling and try again.</p>
+            <div class="flex justify-center gap-4">
+              <button phx-click="back_to_game" class="btn btn-primary">Try Again</button>
+              <button phx-click="reveal_puzzle" class="btn-tiny btn-alert ml-4">Give up</button>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      <%= if @game_state == :correct do %>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="p-20 border-2 border-alert rounded-lg text-center game-shadow bg-white">
+            <h1 class="text-3xl font-bold mb-4">Congratulations!</h1>
+            <p class="mb-6">You solved the puzzle correctly!</p>
+            <button phx-click="reveal_puzzle" class="btn btn-primary">Ok</button>
+          </div>
+        </div>
+      <% end %>
+      <%= if @game_state == :error do %>
+        <div class="text-red-600">
+          <h2 class="text-xl font-semibold">Error</h2>
+          <p>Failed to generate crossword: <%= inspect(@error) %></p>
+          <button class="btn btn-primary mt-4" phx-click="new_game">Try a new game</button>
+        </div>
       <% end %>
     </div>
     """
@@ -187,6 +239,111 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
     {:noreply, socket}
   end
   
+  @impl true  
+  def handle_info(:generate_grid, socket) do
+    Logger.info("Generating crossword grid...")
+    
+    words_with_clues = socket.assigns.words_with_clues
+    
+    socket = case CrosswordGenerator.generate(words_with_clues) do
+      {:ok, grid_state} ->
+        Logger.info("✓ Grid generated successfully!")
+        
+        # Convert sparse grid to full 2D array
+        full_grid = build_full_grid(grid_state.grid, grid_state.grid_rows, grid_state.grid_cols, grid_state.placements)
+        
+        socket
+        |> assign(:grid_state, full_grid)
+        |> assign(:placed_wordlist, grid_state.placements)
+        |> assign(:grid_rows, grid_state.grid_rows)
+        |> assign(:grid_cols, grid_state.grid_cols)
+        |> assign(:user_input, initialize_user_input(grid_state.placements))
+        |> assign(:selected_word, nil)
+        |> assign(:selected_direction, nil)
+        |> assign(:current_cell, nil)
+        |> assign(:game_state, :in_progress)
+        |> assign(:initialized, true)
+      
+      :fail ->
+        Logger.error("✗ Failed to generate grid layout")
+        socket
+        |> assign(:game_state, :error)
+        |> assign(:error, "Could not create crossword layout")
+        |> assign(:initialized, true)
+    end
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("back_to_game", _params, socket) do
+    {:noreply, assign(socket, :game_state, :in_progress)}
+  end
+  
+  @impl true
+  def handle_event("check_puzzle", _params, socket) do
+    # Compare user_input with actual grid
+    socket = assign(socket, :current_cell, nil)
+    |> assign(:selected_word, nil)
+
+    socket = if Enum.all?(socket.assigns.grid_state, fn cell ->
+      if cell.filled do
+        Map.get(socket.assigns.user_input, {cell.row, cell.col}) == cell.letter
+      else
+        true
+      end
+    end)
+    do
+      Logger.info("Puzzle solved!")
+      assign(socket, :game_state, :correct)
+    else
+      Logger.info("Puzzle not solved yet.")
+      assign(socket, :game_state, :try_again)
+    end
+    
+    {:noreply, socket}
+  end
+  
+  def handle_event("clear_puzzle", _params, socket) do
+    socket = assign(socket, :user_input, %{})
+    {:noreply, socket}
+  end
+  
+  @impl true
+  def handle_event("handle_key", %{"key" => key}, socket) do
+    cond do
+      # Letter key
+      String.match?(key, ~r/^[a-zA-Z]$/) ->
+        handle_letter_input(socket, String.upcase(key))
+      
+      # Backspace
+      key == "Backspace" ->
+        handle_backspace(socket)
+      
+      # Arrow keys for navigation
+      key in ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"] ->
+        handle_arrow_key(socket, key)
+      
+      true ->
+        {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_event("reveal_puzzle", _params, socket) do
+    # Fill in all answers
+    user_input = 
+      socket.assigns.grid_state
+      |> Enum.filter(& &1.filled)
+      |> Enum.map(fn cell -> {{cell.row, cell.col}, cell.letter} end)
+      |> Map.new()
+
+    socket = assign(socket, :user_input, user_input)
+    |> assign(:game_state, :solved)
+    |> assign(:current_cell, nil)
+    {:noreply, socket}
+  end
+
   @impl true
   def handle_event("select_cell", %{"row" => row_str, "col" => col_str}, socket) do
     row = String.to_integer(row_str)
@@ -215,57 +372,45 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
       |> assign(:selected_word, selected_word)
       |> assign(:current_cell, {row, col})
     
+    # Focus mobile input when a word is selected
+    socket = if selected_word do
+      push_event(socket, "focus-mobile-input", %{})
+    else
+      socket
+    end
+    
     {:noreply, socket}
   end
-  
+
   @impl true
-  def handle_event("handle_key", %{"key" => key}, socket) do
+  def handle_event("mobile_key_input", %{"key" => key}, socket) do
     cond do
-      # Letter key
-      String.match?(key, ~r/^[a-zA-Z]$/) ->
-        handle_letter_input(socket, String.upcase(key))
+      String.match?(key, ~r/^[A-Z]$/) ->
+        handle_letter_input(socket, key)
       
-      # Backspace
       key == "Backspace" ->
         handle_backspace(socket)
-      
-      # Arrow keys for navigation
-      key in ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"] ->
-        handle_arrow_key(socket, key)
       
       true ->
         {:noreply, socket}
     end
   end
-  
+
   @impl true
-  def handle_event("check_puzzle", _params, socket) do
-    # Compare user_input with actual grid
-    correct = Enum.all?(socket.assigns.grid_state, fn cell ->
-      if cell.filled do
-        Map.get(socket.assigns.user_input, {cell.row, cell.col}) == cell.letter
-      else
-        true
-      end
+  def handle_event("select_word", %{"number" => number_str, "direction" => direction_str}, socket) do
+    number = String.to_integer(number_str)
+    direction = String.to_atom(direction_str)
+    
+    selected_word = Enum.find(socket.assigns.placed_wordlist, fn word ->
+      word.number == number and word.direction == direction
     end)
     
-    message = if correct, do: "Congratulations! Puzzle solved correctly!", else: "Not quite right. Keep trying!"
+    socket = assign(socket, :selected_word, selected_word)
+    |> assign(:current_cell, List.first(get_word_cells(selected_word)))
     
-    {:noreply, put_flash(socket, :info, message)}
+    {:noreply, socket}
   end
-  
-  @impl true
-  def handle_event("reveal_puzzle", _params, socket) do
-    # Fill in all answers
-    user_input = 
-      socket.assigns.grid_state
-      |> Enum.filter(& &1.filled)
-      |> Enum.map(fn cell -> {{cell.row, cell.col}, cell.letter} end)
-      |> Map.new()
-    
-    {:noreply, assign(socket, :user_input, user_input)}
-  end
-  
+
   defp handle_letter_input(socket, letter) do
     if socket.assigns.selected_word && socket.assigns.current_cell do
       {row, col} = socket.assigns.current_cell
@@ -416,42 +561,6 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
     else
       {row, col}  # Stay at current if at beginning
     end
-  end
-  
-  @impl true  
-  def handle_info(:generate_grid, socket) do
-    Logger.info("Generating crossword grid...")
-    
-    words_with_clues = socket.assigns.words_with_clues
-    
-    socket = case CrosswordGenerator.generate(words_with_clues) do
-      {:ok, grid_state} ->
-        Logger.info("✓ Grid generated successfully!")
-        
-        # Convert sparse grid to full 2D array
-        full_grid = build_full_grid(grid_state.grid, grid_state.grid_rows, grid_state.grid_cols, grid_state.placements)
-        
-        socket
-        |> assign(:grid_state, full_grid)
-        |> assign(:placed_wordlist, grid_state.placements)
-        |> assign(:grid_rows, grid_state.grid_rows)
-        |> assign(:grid_cols, grid_state.grid_cols)
-        |> assign(:user_input, initialize_user_input(grid_state.placements))
-        |> assign(:selected_word, nil)
-        |> assign(:selected_direction, nil)
-        |> assign(:current_cell, nil)
-        |> assign(:game_state, :in_progress)
-        |> assign(:initialized, true)
-      
-      :fail ->
-        Logger.error("✗ Failed to generate grid layout")
-        socket
-        |> assign(:game_state, :error)
-        |> assign(:error, "Could not create crossword layout")
-        |> assign(:initialized, true)
-    end
-
-    {:noreply, socket}
   end
 
   defp new_game(socket) do

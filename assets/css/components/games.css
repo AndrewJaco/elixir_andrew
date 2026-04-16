@@ -16,6 +16,15 @@
   }
 }
 
+/* Prevent text selection in games and dashboard */
+.crossword-game,
+.wordsearch-game,
+.dashboard,
+[class*="-game"],
+[class*="dashboard"] {
+  user-select: none;
+  -webkit-user-select: none;
+}
 
 .confetti-container {
   position: fixed;
@@ -289,4 +298,3 @@
     background-color: var(--color-alert);
   }
 }
-

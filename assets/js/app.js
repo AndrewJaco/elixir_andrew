@@ -47,6 +47,47 @@ Hooks.AutoClearFlash = {
   }
 }
 
+Hooks.MobileKeyboard = {
+  mounted() {
+
+    this.handleEvent("focus-mobile-input", () => {
+      this.el.removeAttribute("readonly")
+
+      setTimeout(() => {
+        this.el.scrollIntoView({ block: "center" })
+        this.el.focus({ preventScroll: false })
+        this.el.click()
+        console.log("Input focused:", document.activeElement === this.el)
+      }, 100)
+    })
+
+    this.el.addEventListener("input", (e) => {
+      const value = e.target.value
+      if (value.length > 0) {
+        const lastChar = value.slice(-1).toUpperCase()
+        if (/^[A-Z]$/.test(lastChar)) {
+          this.pushEvent("mobile_key_input", { key: lastChar })
+        }
+        this.el.value = "" // Clear input
+      }
+      e.stopPropagation() // Prevent window keydown from also catching this
+    })
+
+    this.el.addEventListener("keydown", (e) => {
+      e.stopPropagation() // Prevent window keydown from catching this
+
+      if (e.key === "Backspace") {
+        this.pushEvent("mobile_key_input", { key: "Backspace" })
+        e.preventDefault()
+      }
+    })
+
+    this.el.addEventListener("keyup", (e) => {
+      e.stopPropagation() // Also stop keyup to be thorough
+    })
+  }
+}
+
 Hooks.ThemeHandler = {
   mounted() {
     // Only sync theme once per session, not on every reconnection
