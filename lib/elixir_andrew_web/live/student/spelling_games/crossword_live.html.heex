@@ -1,0 +1,154 @@
+<div class="relative crossword-game flex flex-col items-center p-8">
+  <h1 class="text-4xl font-bold mb-8">Crossword Puzzle</h1>
+  <%= if @game_state == :solved do %>
+    <.link navigate="/student/home" class="btn btn-alert text-xl w-32 h-12 absolute top-0 left-40" >Back</.link>
+  <% end %>
+
+  <%= if @game_state == :loading do %>
+    <div class="text-xl">Loading crossword puzzle...</div>
+  <% end %>
+  <%= if @game_state == :ready do %>
+    <div class="text-xl">Loading crossword puzzle...</div>
+  <% end %>
+
+  <%= if @game_state in [:in_progress, :try_again, :correct, :solved] do %>
+    <%!-- Input for mobile keyboard - positioned at bottom --%>
+    <input
+      type="text"
+      id="mobile-keyboard-input"
+      phx-hook="MobileKeyboard"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="characters"
+      inputmode="text"
+      class="w-1 h-1 border-0 p-0 m-0"
+      style="position: fixed; bottom: 0; left: 50%; opacity: 0.01;"
+    />
+    
+    <div class="flex flex-col lg:flex-row justify-center border-4 border-accent p-2 gap-4">
+      <%!-- grid --%>
+      <div class="relative">
+        <svg
+          class="absolute top-0 left-0 z-10 pointer-events-none"
+          width={@grid_cols * 40 + 1}
+          height={@grid_rows * 40 + 1}
+          id="crossword-highlight-svg"
+        >
+          <%= if @selected_word do %>
+            <%
+              {x, y, width, height} = case @selected_word.direction do
+                :across -> {@selected_word.col * 40, @selected_word.row * 40, @selected_word.length * 40 + 2, 40 + 2}
+                :down -> {@selected_word.col * 40, @selected_word.row * 40, 40 + 2, @selected_word.length * 40 + 2}
+              end
+            %>
+            <rect
+              x={x}
+              y={y}
+              width={width}
+              height={height}
+              rx="4"
+              ry="4"
+              fill="none"
+              stroke="#74ede3"
+              stroke-width="3"
+            />
+          <% end %>
+        </svg>
+        
+        <div 
+          class="crossword-grid inline-grid mb-4 md:mb-0 border-1 border-black relative z-0"
+          style={"grid-template-columns: repeat(#{@grid_cols}, 40px); grid-template-rows: repeat(#{@grid_rows}, 40px);"}
+          phx-window-keydown={if @game_state != :solved, do: "handle_key"}
+        >
+          <%= for cell <- @grid_state do %>
+            <div 
+              class={"relative w-10 h-10 border border-black flex items-center justify-center cursor-pointer #{if cell.filled, do: "bg-white", else: "bg-black"} #{if @current_cell == {cell.row, cell.col}, do: "ring-2 ring-blue-500 ring-inset"} #{if @game_state == :solved, do: "pointer-events-none", else: ""}"}
+              phx-click={if cell.filled, do: "select_cell"}
+              phx-value-row={cell.row}
+              phx-value-col={cell.col}
+              onclick="document.getElementById('mobile-keyboard-input')?.focus()"
+            >
+              <%= if cell.number do %>
+                <span class="absolute top-0 left-0 text-xs p-0.5 pointer-events-none"><%= cell.number %></span>
+              <% end %>
+              <%= if cell.filled do %>
+                <span class="text-lg font-bold pointer-events-none">
+                  <%= Map.get(@user_input, {cell.row, cell.col}, "") %>
+                </span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+        
+        <div class="mt-4 mb-2 flex justify-center">
+          <button phx-click="check_puzzle" class="btn btn-primary">Check Puzzle</button>
+          <button phx-click="clear_puzzle" class="btn btn-secondary ml-4">Erase All</button>
+        </div>
+      </div>
+      <%!-- clues --%>
+      <div class="flex gap-2 justify-center border p-4 border-accent">
+        <div>
+          <h3 class="text-xl font-semibold mb-2">Across</h3>
+          <ul class="text-lg border space-y-2">
+            <%= for word <- @placed_wordlist, word.direction == :across do %>
+              <li 
+                class={"p-2 cursor-pointer #{if @selected_word == word, do: "ring-2 ring-blue-500 ring-inset-1 rounded", else: ""}"}
+                phx-click="select_word"
+                phx-value-number={word.number}
+                phx-value-direction={word.direction}
+                onclick="document.getElementById('mobile-keyboard-input')?.focus()"
+                >
+                <strong><%= word.number %>:</strong> <%= word.clue %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-semibold mb-2">Down</h3>
+          <ul class="text-lg border space-y-2">
+            <%= for word <- @placed_wordlist, word.direction == :down do %>
+              <li 
+                class={"p-2 cursor-pointer #{if @selected_word == word, do: "ring-2 ring-blue-500 ring-inset-1 rounded", else: ""}"}
+                phx-click="select_word"
+                phx-value-number={word.number}
+                phx-value-direction={word.direction}
+                onclick="document.getElementById('mobile-keyboard-input')?.focus()"
+                >
+                <strong><%= word.number %>:</strong> <%= word.clue %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <% end %>
+  <%= if @game_state == :try_again do %>
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div class="p-20 border-2 border-alert rounded-lg text-center game-shadow bg-white">
+        <h1 class="text-3xl font-bold mb-4">Keep Trying!</h1>
+        <p class="mb-6">Check your spelling and try again.</p>
+        <div class="flex justify-center gap-4">
+          <button phx-click="back_to_game" class="btn btn-primary">Try Again</button>
+          <button phx-click="reveal_puzzle" class="btn-tiny btn-alert ml-4">Give up</button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+  <%= if @game_state == :correct do %>
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div class="p-20 border-2 border-alert rounded-lg text-center game-shadow bg-white">
+        <h1 class="text-3xl font-bold mb-4">Congratulations!</h1>
+        <p class="mb-6">You solved the puzzle correctly!</p>
+        <button phx-click="reveal_puzzle" class="btn btn-primary">Ok</button>
+      </div>
+    </div>
+  <% end %>
+  <%= if @game_state == :error do %>
+    <div class="text-red-600">
+      <h2 class="text-xl font-semibold">Error</h2>
+      <p>Failed to generate crossword: <%= inspect(@error) %></p>
+      <button class="btn btn-primary mt-4" phx-click="new_game">Try a new game</button>
+    </div>
+  <% end %>
+</div>
