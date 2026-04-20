@@ -1,4 +1,4 @@
-defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator do
+defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearch.WordSearchGenerator do
   alias ElixirAndrewWeb.Student.SpellingGames.WordSearch.{Word, Cell}
   
   @grid_size 10

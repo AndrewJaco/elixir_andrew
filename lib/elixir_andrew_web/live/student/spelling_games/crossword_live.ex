@@ -1,7 +1,6 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
   use ElixirAndrewWeb, :live_view
-  alias ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator
-  alias ElixirAndrewWeb.Student.SpellingGames.Crossword.{PlacedWord, ClueCache}
+  alias ElixirAndrewWeb.Student.SpellingGames.Crossword.{PlacedWord, ClueCache, CrosswordGenerator}
   require Logger
 
   @impl true

@@ -1,7 +1,6 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.WordSearchLive do
   use ElixirAndrewWeb, :live_view
-  alias ElixirAndrewWeb.Student.SpellingGames.WordSearchGenerator 
-  alias ElixirAndrewWeb.Student.SpellingGames.WordSearch.{Word, Cell}
+  alias ElixirAndrewWeb.Student.SpellingGames.WordSearch.{Word, Cell, WordSearchGenerator}
 
   @impl true
   def mount(params, _session, socket) do

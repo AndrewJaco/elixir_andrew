@@ -1,4 +1,4 @@
-defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordGenerator do
+defmodule ElixirAndrewWeb.Student.SpellingGames.Crossword.CrosswordGenerator do
   alias ElixirAndrewWeb.Student.AI.Service
   alias ElixirAndrew.ClassSession
   require Logger
