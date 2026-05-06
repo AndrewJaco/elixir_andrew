@@ -5,7 +5,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.Crossword.ClueCache do
   """
   use Agent
 
-  @ttl 300_000  # 5 minutes in milliseconds
+  @ttl 300_000  # 5 minutes
 
   def start_link(_opts) do
     Agent.start_link(fn -> %{} end, name: __MODULE__)

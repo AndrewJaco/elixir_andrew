@@ -159,6 +159,82 @@ Hooks.Sortable = {
   }
 }
 
+Hooks.CatchIt = {
+  mounted() {
+    const sourceSelector = this.el.dataset.source || "[data-catch-it-source]"
+    const bucketSelector = this.el.dataset.bucket || "[data-catch-it-bucket]"
+    const groupName = this.el.dataset.sortableGroup || "catch-it"
+    const removeOnDrop = this.el.dataset.removeOnDrop !== "false"
+
+    this.sourceEl = this.el.querySelector(sourceSelector)
+    this.bucketEl = this.el.querySelector(bucketSelector)
+
+    if (!this.sourceEl || !this.bucketEl) {
+      console.warn("CatchIt hook could not find source or bucket element", {
+        sourceSelector,
+        bucketSelector
+      })
+      return
+    }
+
+    const sortableOptions = {
+      group: { name: groupName, pull: true, put: true },
+      animation: 150,
+      delay: 150,
+      delayOnTouchOnly: true,
+      touchStartThreshold: 5,
+      forceFallback: true,
+      ghostClass: "opacity-50",
+      dragClass: "grabbed"
+    }
+
+    this.sourceSortable = new Sortable(this.sourceEl, {
+      ...sortableOptions,
+      sort: false
+    })
+
+    this.bucketSortable = new Sortable(this.bucketEl, {
+      ...sortableOptions,
+      onAdd: evt => {
+        const item = evt.item
+        const wordId = item?.dataset.wordId || item?.dataset.id
+        const word = item?.dataset.word || item?.textContent?.trim()
+
+        this.pushEvent("catch_it_drop", {
+          id: wordId,
+          word
+        })
+
+        // Most Catch It rounds should consume a falling word after a drop.
+        if (removeOnDrop) {
+          item?.remove()
+        }
+      },
+      onEnd: () => {
+        const ids = Array.from(this.bucketEl.children)
+          .map(el => el.dataset.wordId || el.dataset.id)
+          .filter(Boolean)
+
+        this.pushEvent("catch_it_bucket_state", { ids })
+      }
+    })
+
+    this.handleEvent("catch_it_clear_bucket", () => {
+      this.bucketEl.replaceChildren()
+    })
+  },
+
+  destroyed() {
+    if (this.sourceSortable) {
+      this.sourceSortable.destroy()
+    }
+
+    if (this.bucketSortable) {
+      this.bucketSortable.destroy()
+    }
+  }
+}
+
 Hooks.WordSearch = {
   mounted() {
     this.startCell = null
