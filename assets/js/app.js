@@ -159,79 +159,202 @@ Hooks.Sortable = {
   }
 }
 
+const GROUND_Y = 500
+const LANE_PERCENTS = [0.1, 0.26, 0.45, 0.66, 0.8]
+
 Hooks.CatchIt = {
   mounted() {
-    const sourceSelector = this.el.dataset.source || "[data-catch-it-source]"
-    const bucketSelector = this.el.dataset.bucket || "[data-catch-it-bucket]"
-    const groupName = this.el.dataset.sortableGroup || "catch-it"
-    const removeOnDrop = this.el.dataset.removeOnDrop !== "false"
+    this.bucket = document.getElementById("bucket")
 
-    this.sourceEl = this.el.querySelector(sourceSelector)
-    this.bucketEl = this.el.querySelector(bucketSelector)
+    this.words = []
+    this.previousWordIds = []
+    this.previousCurrentWordId = null
 
-    if (!this.sourceEl || !this.bucketEl) {
-      console.warn("CatchIt hook could not find source or bucket element", {
-        sourceSelector,
-        bucketSelector
-      })
-      return
+    this.draggingWord = null
+
+    this.setupWords()
+
+    // Capture initial IDs so the first updated() doesn't false-trigger a reset
+    this.previousWordIds = Array.from(this.el.querySelectorAll(".falling-word")).map(el => el.dataset.id)
+    this.previousCurrentWordId = this.el.dataset.currentWord
+
+    this.loop = this.loop.bind(this)
+
+    requestAnimationFrame(this.loop)
+  },
+
+  updated() {
+    const currentWordIds = Array.from(this.el.querySelectorAll(".falling-word"))
+      .map(el => el.dataset.id)
+    const currentCurrentWordId = this.el.dataset.currentWord
+
+    const wordIdsChanged = this.previousWordIds.join(',') !== currentWordIds.join(',')
+    const currentWordChanged = this.previousCurrentWordId !== currentCurrentWordId
+
+    if (wordIdsChanged || currentWordChanged) {
+      this.words = []
+      // Changes words for the dom, needs to be reset
+      this.setupWords()
+      this.previousWordIds = currentWordIds
+      this.previousCurrentWordId = currentCurrentWordId
     }
+  },
 
-    const sortableOptions = {
-      group: { name: groupName, pull: true, put: true },
-      animation: 150,
-      delay: 150,
-      delayOnTouchOnly: true,
-      touchStartThreshold: 5,
-      forceFallback: true,
-      ghostClass: "opacity-50",
-      dragClass: "grabbed"
-    }
+  laneX(percentIndex) {
+    return this.el.clientWidth * LANE_PERCENTS[percentIndex]
+  },
 
-    this.sourceSortable = new Sortable(this.sourceEl, {
-      ...sortableOptions,
-      sort: false
-    })
+  setupWords() {
+    const els = this.el.querySelectorAll(".falling-word")
 
-    this.bucketSortable = new Sortable(this.bucketEl, {
-      ...sortableOptions,
-      onAdd: evt => {
-        const item = evt.item
-        const wordId = item?.dataset.wordId || item?.dataset.id
-        const word = item?.dataset.word || item?.textContent?.trim()
+    els.forEach((el, index) => {
+      const laneIndex = index % LANE_PERCENTS.length
+      const word = {
+        id: el.dataset.id,
+        el,
+        x: this.laneX(laneIndex),
+        y: -100 - (index * 120),
+        speed: 1 + Math.random() * 1.5,
 
-        this.pushEvent("catch_it_drop", {
-          id: wordId,
-          word
-        })
+        dragging: false,
 
-        // Most Catch It rounds should consume a falling word after a drop.
-        if (removeOnDrop) {
-          item?.remove()
-        }
-      },
-      onEnd: () => {
-        const ids = Array.from(this.bucketEl.children)
-          .map(el => el.dataset.wordId || el.dataset.id)
-          .filter(Boolean)
+        offsetX: 0,
+        offsetY: 0,
 
-        this.pushEvent("catch_it_bucket_state", { ids })
+        respawnAt: null
       }
-    })
 
-    this.handleEvent("catch_it_clear_bucket", () => {
-      this.bucketEl.replaceChildren()
+      this.attachDragEvents(word)
+
+      this.words.push(word)
     })
   },
 
-  destroyed() {
-    if (this.sourceSortable) {
-      this.sourceSortable.destroy()
+  attachDragEvents(word) {
+    const startDrag = (e) => {
+      e.preventDefault()
+
+      word.dragging = true
+      this.draggingWord = word
+
+      const point = this.getPoint(e)
+
+      const rect = word.el.getBoundingClientRect()
+
+      word.offsetX = point.x - rect.left
+      word.offsetY = point.y - rect.top
+
+      word.el.style.zIndex = 1000
     }
 
-    if (this.bucketSortable) {
-      this.bucketSortable.destroy()
+    const moveDrag = (e) => {
+      if (!word.dragging) return
+
+      const point = this.getPoint(e)
+
+      const parentRect = this.el.getBoundingClientRect()
+
+      word.x =
+        point.x - parentRect.left - word.offsetX
+      word.y =
+        point.y - parentRect.top - word.offsetY
     }
+
+    const endDrag = () => {
+      if (!word.dragging) return
+
+      word.dragging = false
+
+      word.el.style.zIndex = ""
+
+      const caught =
+        this.checkBucketCollision(word)
+
+      if (caught) {
+        this.pushEvent("word_caught", { id: word.id })
+        this.respawnWord(word)
+      }
+    }
+
+    word.el.addEventListener("pointerdown", startDrag)
+    window.addEventListener("pointermove", moveDrag)
+    window.addEventListener("pointerup", endDrag)
+  },
+
+  getPoint(e) {
+    return {
+      x: e.clientX,
+      y: e.clientY
+    }
+  },
+
+  loop(timestamp) {
+    this.words.forEach(word => {
+
+      if (word.dragging) {
+        this.render(word)
+        return
+      }
+
+      if (word.respawnAt && timestamp < word.respawnAt) {
+        this.render(word)
+        return
+      }
+
+      if (word.respawnAt && timestamp >= word.respawnAt) {
+        this.respawnWord(word)
+      }
+
+      word.y += word.speed
+
+      if (word.y >= GROUND_Y) {
+        word.respawnAt = timestamp + 2000
+      }
+
+      this.render(word)
+    })
+
+    requestAnimationFrame(this.loop)
+  },
+
+  render(word) {
+    word.el.style.transform = `translate(${word.x}px, ${word.y}px)`
+  },
+
+  respawnWord(word) {
+    const usedX = this.words
+      .filter(w => w !== word)
+      .map(w => w.x)
+
+    const allLanes = LANE_PERCENTS.map((_, i) => this.laneX(i))
+    const availableLanes = allLanes.filter(x => !usedX.includes(x))
+
+    // Fall back to any random lane if all are occupied (e.g. all words grounded)
+    const pool = availableLanes.length > 0 ? availableLanes : allLanes
+    const x = pool[Math.floor(Math.random() * pool.length)]
+
+    word.x = x
+    word.y = -100
+
+    word.speed = 1 + Math.random() * 1.5
+
+    word.respawnAt = null
+  },
+
+  checkBucketCollision(word) {
+    const wordRect = word.el.getBoundingClientRect()
+    const bucketRect = this.bucket.getBoundingClientRect()
+
+    return !(
+      wordRect.right < bucketRect.left ||
+      wordRect.left > bucketRect.right ||
+      wordRect.bottom < bucketRect.top ||
+      wordRect.top > bucketRect.bottom
+    )
+  },
+
+  destroyed() {
+    cancelAnimationFrame(this.frame)
   }
 }
 

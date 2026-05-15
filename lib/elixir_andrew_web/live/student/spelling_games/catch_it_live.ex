@@ -60,15 +60,41 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
         <p class="error">Error: <%= @error %></p>
       <% end %>
       <%= if @game_state == :in_round do %>
-        <p>Current Score: <%= @score %></p>
-        <p>Current Bonus: <%= @current_bonus %></p>
-        <p>Current Word: <%= @current_word.word %></p>
-        <p>Clue: <%= @current_word.clue %></p>
-        <div class="words-to-drop flex space-x-4 mt-4">
-          <%= for word <- @words_to_drop do %>
-            <button class="drop-word" phx-click="word_caught" phx-value-id={word.id}><%= word.word %></button>
-          <% end %>
+        <div id="catch-it-container"
+            phx-hook="CatchIt"
+            data-current-word={@current_word.id}
+            class="relative w-full h-[700px] border-2 border-gray-300 rounded-lg overflow-hidden bg-blue-50"
+        >
+          <div id="scoreboard" class="absolute top-2 left-2 bg-white bg-opacity-75 p-2 rounded shadow">
+            <p>Score: <%= @score %></p>
+            <p>Bonus: <%= @current_bonus %></p>
+          </div>
+          <div id="words-layer" >
+            <%= for word <- @words_to_drop do %>
+              <div 
+                id={"word-#{word.id}"} 
+                class="falling-word absolute text-lg bg-white px-8 py-4 border-1 border-primary rounded shadow" 
+                data-id={word.id}
+              >
+                <%= word.word %>
+              </div>
+            <% end %>
         </div>
+
+        <div
+          id="bucket"
+          class="absolute bottom-6 left-1/2 -translate-x-1/2 w-40 h-24 bg-gray-800 rounded-xl flex items-center justify-center text-white text-lg"
+        >
+          Catch Here
+        </div>
+
+        <div class="absolute bottom-0 w-full text-center">
+          <p>Clue: <%= @current_word.clue %></p>
+          <p>Current Word debug: <%= @current_word.word %></p>
+        </div>
+
+        </div>
+
       <% end %>
       <%= if @game_state == :game_over do %>
         <p>Game Over! Final Score: <%= @score %></p>
@@ -157,6 +183,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
       words_to_drop =
       [next_current_word | distractors]
       |> Enum.reject(&is_nil/1)
+      |> Enum.shuffle()
       
       {:noreply,
       assign(socket,
