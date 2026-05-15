@@ -160,7 +160,7 @@ Hooks.Sortable = {
 }
 
 const GROUND_Y = 500
-const LANE_PERCENTS = [0.1, 0.26, 0.45, 0.66, 0.8]
+const LANE_PERCENTS = [0.1, 0.25, 0.45, 0.66, 0.8]
 
 Hooks.CatchIt = {
   mounted() {
@@ -192,6 +192,7 @@ Hooks.CatchIt = {
     const currentWordChanged = this.previousCurrentWordId !== currentCurrentWordId
 
     if (wordIdsChanged || currentWordChanged) {
+      this.teardownWordEvents()
       this.words = []
       // Changes words for the dom, needs to be reset
       this.setupWords()
@@ -227,6 +228,16 @@ Hooks.CatchIt = {
       this.attachDragEvents(word)
 
       this.words.push(word)
+    })
+  },
+
+  teardownWordEvents() {
+    this.words.forEach(word => {
+      if (!word.handlers) return
+
+      word.el.removeEventListener("pointerdown", word.handlers.startDrag)
+      window.removeEventListener("pointermove", word.handlers.moveDrag)
+      window.removeEventListener("pointerup", word.handlers.endDrag)
     })
   },
 
@@ -275,6 +286,8 @@ Hooks.CatchIt = {
         this.respawnWord(word)
       }
     }
+
+    word.handlers = { startDrag, moveDrag, endDrag }
 
     word.el.addEventListener("pointerdown", startDrag)
     window.addEventListener("pointermove", moveDrag)
@@ -354,6 +367,7 @@ Hooks.CatchIt = {
   },
 
   destroyed() {
+    this.teardownWordEvents()
     cancelAnimationFrame(this.frame)
   }
 }

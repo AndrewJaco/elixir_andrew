@@ -211,7 +211,14 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
       {:noreply, socket}
     else
       Logger.info("Incorrect word caught. Bonus decreased.")
-      {:noreply, update(socket, :current_bonus, &(&1 - 2))}
+      socket =
+        if socket.assigns.current_bonus > 0 do
+          update(socket, :current_bonus, fn bonus -> max(bonus - 2, 0) end)
+        else
+          socket
+        end
+
+      {:noreply, socket}
     end
   end
 end
