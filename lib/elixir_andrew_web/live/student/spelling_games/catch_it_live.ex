@@ -1,6 +1,7 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
   use ElixirAndrewWeb, :live_view
-  alias ElixirAndrewWeb.Student.SpellingGames.Crossword.{ClueCache, CrosswordGenerator}
+  alias ElixirAndrewWeb.Student.SpellingGames.Crossword.ClueCache
+  alias ElixirAndrewWeb.Student.SpellingGames.ClueGenerator
   require Logger
 
   @impl true
@@ -59,7 +60,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
       <%= if @game_state == :error do %>
         <p class="error">Error: <%= @error %></p>
       <% end %>
-      <%= if @game_state == :in_round do %>
+      <%= if @game_state in [:in_round, :game_over] do %>
         <div id="catch-it-container"
             phx-hook="CatchIt"
             data-current-word={@current_word.id}
@@ -88,7 +89,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
           Catch Here
         </div>
 
-        <div class="absolute bottom-0 w-full text-center">
+        <div class="absolute top-0 w-full text-center">
           <p>Clue: <%= @current_word.clue %></p>
           <p>Current Word debug: <%= @current_word.word %></p>
         </div>
@@ -97,8 +98,15 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
 
       <% end %>
       <%= if @game_state == :game_over do %>
-        <p>Game Over! Final Score: <%= @score %></p>
-        <button phx-click="play_again">Play Again</button>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="p-8 border-2 border-alert rounded-lg text-center game-shadow wordsearch-modal">
+            <h1 class="text-3xl font-bold mb-4">Congratulations!</h1>
+            <p class="mb-6">You caught all the words!</p>
+            <p class="mb-6 text-xl font-bold text-accent"><%= @score %> Points!</p>
+            <button phx-click="restart_game" class="btn btn-primary">Play Again</button>
+            <.link navigate={~p"/student/home"} class="btn btn-alert ml-4">Exit</.link>
+          </div>
+        </div>
       <% end %>
     </div>
 
@@ -113,24 +121,16 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
     user_id = socket.assigns.current_user.id
 
     socket = 
-      case ElixirAndrew.Progress.get_user_progress(user_id) do
-        nil ->
-          Logger.error("No progress found for user #{user_id}")
-          assign(socket, game_state: :error, error: "No progress found", initialized: true)
+      case ClueGenerator.generate_clues(spelling_words, user_id, :catch_it) do
+        {:ok, words_with_clues} ->
+          Logger.info("✓ Clues generated, now starting first round...")
+          send(self(), :start_first_round)
+          assign(socket, words_with_clues: words_with_clues, game_state: :loading, initialized: true)
         
-        progress ->
-          # Generate clues first
-          case CrosswordGenerator.get_crossword_clues(spelling_words, progress) do
-            {:ok, clues} ->
-              Logger.info("✓ Clues generated, now starting first round...")
-              send(self(), :start_first_round)
-              assign(socket, words_with_clues: clues, game_state: :loading, initialized: true)
-            
-            {:error, reason} ->
-              Logger.error("✗ Failed to generate clues: #{inspect(reason)}")
-              assign(socket, game_state: :error, error: reason, initialized: true)
-          end
-      end
+        {:error, reason} ->
+          Logger.error("✗ Failed to generate clues: #{inspect(reason)}")
+          assign(socket, game_state: :error, error: reason, initialized: true)
+        end
 
     {:noreply, socket}
   end
@@ -220,5 +220,12 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
 
       {:noreply, socket}
     end
+  end
+
+  @impl true
+  def handle_event("restart_game", _params, socket) do
+    socket = assign(socket, score: 0, current_bonus: 10)
+    send(self(), :initialize_game)
+    {:noreply, socket}
   end
 end

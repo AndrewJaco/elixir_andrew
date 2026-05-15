@@ -1,6 +1,7 @@
 defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
   use ElixirAndrewWeb, :live_view
   alias ElixirAndrewWeb.Student.SpellingGames.Crossword.{PlacedWord, ClueCache, CrosswordGenerator}
+  alias ElixirAndrewWeb.Student.SpellingGames.ClueGenerator
   require Logger
 
   @impl true
@@ -56,23 +57,15 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
     user_id = socket.assigns.current_user.id
 
     socket = 
-      case ElixirAndrew.Progress.get_user_progress(user_id) do
-        nil ->
-          Logger.error("No progress found for user #{user_id}")
-          assign(socket, game_state: :error, error: "No progress found", initialized: true)
+      case ClueGenerator.generate_clues(spelling_words, user_id, :crossword) do
+        {:ok, words_with_clues} ->
+          Logger.info("✓ Clues generated, now starting first round...")
+          send(self(), :generate_grid)
+          assign(socket, words_with_clues: words_with_clues, game_state: :loading)
         
-        progress ->
-          # Generate clues first
-          case CrosswordGenerator.get_crossword_clues(spelling_words, progress) do
-            {:ok, clues} ->
-              Logger.info("✓ Clues generated, now generating grid...")
-              send(self(), :generate_grid)
-              assign(socket, words_with_clues: clues, game_state: :loading)
-            
-            {:error, reason} ->
-              Logger.error("✗ Failed to generate clues: #{inspect(reason)}")
-              assign(socket, game_state: :error, error: reason, initialized: true)
-          end
+        {:error, reason} ->
+          Logger.error("✗ Failed to generate clues: #{inspect(reason)}")
+          assign(socket, game_state: :error, error: reason)
       end
 
     {:noreply, socket}
