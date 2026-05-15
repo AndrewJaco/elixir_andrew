@@ -74,9 +74,8 @@ Hooks.MobileKeyboard = {
     })
 
     this.el.addEventListener("keydown", (e) => {
-      e.stopPropagation() // Prevent window keydown from catching this
-
       if (e.key === "Backspace") {
+        e.stopPropagation() // Prevent window keydown from also handling backspace
         this.pushEvent("mobile_key_input", { key: "Backspace" })
         e.preventDefault()
       }

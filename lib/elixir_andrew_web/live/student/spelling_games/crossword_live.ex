@@ -90,6 +90,9 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
         
         # Convert sparse grid to full 2D array
         full_grid = build_full_grid(grid_state.grid, grid_state.grid_rows, grid_state.grid_cols, grid_state.placements)
+
+        selected_word = List.first(grid_state.placements)
+        first_cell = selected_word && List.first(get_word_cells(selected_word))
         
         socket
         |> assign(:grid_state, full_grid)
@@ -97,9 +100,9 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CrosswordLive do
         |> assign(:grid_rows, grid_state.grid_rows)
         |> assign(:grid_cols, grid_state.grid_cols)
         |> assign(:user_input, initialize_user_input(grid_state.placements))
-        |> assign(:selected_word, nil)
-        |> assign(:selected_direction, nil)
-        |> assign(:current_cell, nil)
+        |> assign(:selected_word, selected_word)
+        |> assign(:selected_direction, selected_word && selected_word.direction)
+        |> assign(:current_cell, first_cell)
         |> assign(:game_state, :in_progress)
         |> assign(:initialized, true)
       
