@@ -6,58 +6,58 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.Crossword.CrosswordGenerator do
   @grid_size 15
   @candidate_limit 20
   @parallel_branches 3 
-  @min_words 10 
+  # @min_words 10 
 
 
-  @spec get_crossword_clues(list(String.t()), map()) :: {:ok, list(map())} | {:error, term()}
-  def get_crossword_clues(spelling_words, progress) do
-    Logger.info("=== Crossword Generator Test ===")
-    Logger.info("Original spelling words (#{length(spelling_words)}): #{inspect(spelling_words)}")
+  # @spec get_crossword_clues(list(String.t()), map()) :: {:ok, list(map())} | {:error, term()}
+  # def get_crossword_clues(spelling_words, progress) do
+  #   Logger.info("=== Crossword Generator Test ===")
+  #   Logger.info("Original spelling words (#{length(spelling_words)}): #{inspect(spelling_words)}")
     
-    # Pad word list if needed
-    padded_words = pad_word_list(spelling_words, progress)
+  #   # Pad word list if needed
+  #   padded_words = pad_word_list(spelling_words, progress)
 
-    # TEMPORARY: Return mock data to test without AI call
-    mock_words_with_clues = Enum.map(padded_words, fn word ->
-      %{"word" => word, "clue" => "Mock clue for #{word}"}
-    end)
+  #   # TEMPORARY: Return mock data to test without AI call
+  #   mock_words_with_clues = Enum.map(padded_words, fn word ->
+  #     %{"word" => word, "clue" => "Mock clue for #{word}"}
+  #   end)
     
-    Logger.info("✓ Returning mock data (AI call skipped)")
-    {:ok, mock_words_with_clues}
+  #   Logger.info("✓ Returning mock data (AI call skipped)")
+  #   {:ok, mock_words_with_clues}
 
-    # Uncomment below to make actual AI call:
-    # case Service.get_crossword_clues(padded_words, progress, max_words: 12) do
-    #   {:ok, %{"words" => words_with_clues}} ->
-    #     Logger.info("✓ AI Response received!")
-    #     Logger.info("Words with clues: #{inspect(words_with_clues, pretty: true)}")
-    #     {:ok, words_with_clues}
+  #   # Uncomment below to make actual AI call:
+  #   # case Service.get_crossword_clues(padded_words, progress, max_words: 12) do
+  #   #   {:ok, %{"words" => words_with_clues}} ->
+  #   #     Logger.info("✓ AI Response received!")
+  #   #     Logger.info("Words with clues: #{inspect(words_with_clues, pretty: true)}")
+  #   #     {:ok, words_with_clues}
     
-    #   {:error, reason} ->
-    #     Logger.error("✗ AI call failed: #{inspect(reason)}")
-    #     {:error, reason}
-    # end
-  end
+  #   #   {:error, reason} ->
+  #   #     Logger.error("✗ AI call failed: #{inspect(reason)}")
+  #   #     {:error, reason}
+  #   # end
+  # end
   
-  defp pad_word_list(words, progress) when length(words) >= @min_words, do: words
+  # defp pad_word_list(words, progress) when length(words) >= @min_words, do: words
   
-  defp pad_word_list(words, progress) do
-    needed = @min_words - length(words)
+  # defp pad_word_list(words, progress) do
+  #   needed = @min_words - length(words)
     
-    # Get previous spelling words from student's class sessions
-    student_id = Map.get(progress, :user_id)
+  #   # Get previous spelling words from student's class sessions
+  #   student_id = Map.get(progress, :user_id)
     
-    previous_words = if student_id do
-      ClassSession.list_class_sessions(student_id, 10)  # Get last 10 sessions
-      |> Enum.flat_map(fn session -> session.spelling_words || [] end)
-      |> Enum.reject(fn word -> word in words end)  # Remove duplicates
-      |> Enum.sort_by(&String.length/1, :desc)  # Prioritize longer words
-      |> Enum.take(needed)
-    else
-      []
-    end
+  #   previous_words = if student_id do
+  #     ClassSession.list_class_sessions(student_id, 10)  # Get last 10 sessions
+  #     |> Enum.flat_map(fn session -> session.spelling_words || [] end)
+  #     |> Enum.reject(fn word -> word in words end)  # Remove duplicates
+  #     |> Enum.sort_by(&String.length/1, :desc)  # Prioritize longer words
+  #     |> Enum.take(needed)
+  #   else
+  #     []
+  #   end
     
-    words ++ previous_words
-  end
+  #   words ++ previous_words
+  # end
 
   def generate(words_clues) do
     entries = 

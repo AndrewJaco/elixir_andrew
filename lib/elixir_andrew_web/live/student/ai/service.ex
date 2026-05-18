@@ -3,6 +3,7 @@ defmodule ElixirAndrewWeb.Student.AI.Service do
   Generic AI service for all educational content generation.
   Handles OpenAI API calls, schema validation, and error handling.
   """
+  require Logger
   
   alias LangChain.ChatModels.ChatOpenAI
   alias LangChain.Chains.LLMChain
@@ -30,18 +31,18 @@ defmodule ElixirAndrewWeb.Student.AI.Service do
   end
 
   @doc """
-  Generate definitions for matching game and flashcards.
-  Returns {:ok, %{"words" => [%{"word" => "...", "definition" => "..."}]}} or {:error, reason}
+  Generate definitions for catch it game.
+  Returns {:ok, %{"words" => [%{"word" => "...", "clue" => "..."}]}} or {:error, reason}
   """
   def generate_definitions(words, progress, opts \\ []) do
-    prompt = PromptBuilder.matching_prompt(%{
+    prompt = PromptBuilder.definitions_prompt(%{
       progress: progress,
       words: words
     })
     
     # Max tokens for definitions: 200 tokens (short definitions only)
     ai_opts = Keyword.merge([max_completion_tokens: 200], opts)
-    call_ai(prompt, Schemas.MatchingSchema.schema(), ai_opts)
+    call_ai(prompt, Schemas.DefinitionsSchema.schema(), ai_opts)
   end
 
   defp call_ai(prompt, schema, opts \\ [], retries_left \\ 2)
@@ -145,7 +146,7 @@ defmodule ElixirAndrewWeb.Student.AI.Service do
   defp parse_and_validate("", _schema), do: {:error, :empty_response}
 
   defp parse_and_validate(response_text, schema) do
-    IO.inspect(response_text, label: "Raw AI Response")
+    Logger.debug("Raw AI response: #{response_text}")
     with {:ok, json} <- Jason.decode(response_text),
         {:ok, repaired} <- repair_keys(json),
         :ok <- validate_schema(repaired, schema) do

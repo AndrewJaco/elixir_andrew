@@ -1,6 +1,6 @@
-defmodule ElixirAndrewWeb.Live.Student.AI.Schemas.MatchingSchema do
+defmodule ElixirAndrewWeb.Live.Student.AI.Schemas.DefinitionsSchema do
   @moduledoc """
-  Defines the expected JSON structure for AI-generated word definitions for matching game.
+  Defines the expected JSON structure for AI-generated word definitions for catch it game or other matching games.
   """
 
   @type word_entry :: %{String.t() => String.t()}
@@ -16,15 +16,15 @@ defmodule ElixirAndrewWeb.Live.Student.AI.Schemas.MatchingSchema do
         "type" => "array",
         "items" => %{
           "type" => "object",
-          "required" => ["word", "definition"],
+          "required" => ["word", "clue"],
           "properties" => %{
             "word" => %{
               "type" => "string",
               "description" => "The spelling word."
             },
-            "definition" => %{
+            "clue" => %{
               "type" => "string",
-              "description" => "A simple, student-friendly definition."
+              "description" => "A simple, student-friendly clue."
             }
           }
         }

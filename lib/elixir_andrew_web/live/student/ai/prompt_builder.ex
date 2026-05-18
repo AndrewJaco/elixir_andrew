@@ -26,11 +26,8 @@ defmodule ElixirAndrewWeb.Student.AI.PromptBuilder do
     - Each clue should be simple, student-friendly, and level appropriate.
     - Each clue should be no more than two sentences.
     - Clues should help students learn and remember the word.
-
     The response MUST be valid JSON.
-
     The root object MUST contain a key called "words".
-
     Do NOT use "clues" or any other key.
 
     Example:
@@ -43,9 +40,9 @@ defmodule ElixirAndrewWeb.Student.AI.PromptBuilder do
   end
 
   @doc """
-  Build prompt for matching game definitions.
+  Build prompt for matching type games definitions.
   """
-  def matching_prompt(%{
+  def definitions_prompt(%{
     progress: progress,
     words: words_list
   }) do
@@ -60,10 +57,19 @@ defmodule ElixirAndrewWeb.Student.AI.PromptBuilder do
     Provide simple, student-friendly definitions for these spelling words: #{Enum.join(words_list, ", ")}.
 
     Rules:
-    - Each definition should be clear and concise (1-2 sentences).
+    - Each definition should be clear and concise (one word to one sentence in length).
     - Use vocabulary appropriate for the student's level.
-    - Avoid using the word itself in the definition.
+    - Never use the word itself in the definition.
     - Focus on helping students understand and remember the word.
+    The response MUST be valid JSON.
+    The root object MUST contain a key called "words".
+    Do NOT use "definitions" or any other key.
+    Example:
+    {
+      "words": [
+        {"word": "airplane", "clue": "A flying vehicle"}
+      ]
+    }
     """
   end
 end

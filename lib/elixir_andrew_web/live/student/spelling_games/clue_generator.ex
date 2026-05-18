@@ -28,7 +28,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.ClueGenerator do
       {:ok, mock_words_with_clues}
 
       # Uncomment below to make actual AI call:
-      # case Service.get_crossword_clues(padded_words, progress, max_words: 12) do
+      # case Service.generate_crossword(padded_words, progress, max_words: 12) do
       #   {:ok, %{"words" => words_with_clues}} ->
       #     Logger.info("✓ AI Response received!")
       #     Logger.info("Words with clues: #{inspect(words_with_clues, pretty: true)}")
@@ -53,7 +53,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.ClueGenerator do
       end)
       
       # Uncomment below to make actual AI call:
-      # case Service.get_crossword_clues(padded_words, progress, max_words: 12) do
+      # case Service.generate_definitions(padded_words, progress) do
       #   {:ok, %{"words" => words_with_clues}} ->
       #     Logger.info("✓ AI Response received!")
       #     Logger.info("Words with clues: #{inspect(words_with_clues, pretty: true)}")
@@ -69,8 +69,6 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.ClueGenerator do
     end
   end
 
-
-
   defp get_progress(user_id) do
     case Progress.get_user_progress(user_id) do
       nil ->
@@ -81,9 +79,6 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.ClueGenerator do
         {:ok, progress}
     end
   end
-
-  
-
 
   defp pad_word_list(words, progress) when length(words) >= @min_words, do: words
   
