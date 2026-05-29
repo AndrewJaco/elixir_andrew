@@ -159,11 +159,13 @@ Hooks.Sortable = {
 }
 
 const GROUND_Y = 500
-const LANE_PERCENTS = [0.1, 0.25, 0.45, 0.66, 0.8]
+const LANE_PERCENTS = [0.1, 0.27, 0.45, 0.62, 0.8]
 
 Hooks.CatchIt = {
   mounted() {
-    this.bucket = document.getElementById("bucket")
+    this.bucket = this.el.parentElement.querySelector("#bucket")
+    this.isRunning = this.el.dataset.running === "true"
+    this.frame = null
 
     this.words = []
     this.previousWordIds = []
@@ -171,18 +173,39 @@ Hooks.CatchIt = {
 
     this.draggingWord = null
 
-    this.setupWords()
+    if (this.isRunning) {
+      this.setupWords()
+    }
 
     // Capture initial IDs so the first updated() doesn't false-trigger a reset
     this.previousWordIds = Array.from(this.el.querySelectorAll(".falling-word")).map(el => el.dataset.id)
     this.previousCurrentWordId = this.el.dataset.currentWord
 
     this.loop = this.loop.bind(this)
-
-    requestAnimationFrame(this.loop)
+    this.startLoop()
   },
 
   updated() {
+    const wasRunning = this.isRunning
+    this.isRunning = this.el.dataset.running === "true"
+
+    if (wasRunning && !this.isRunning) {
+      this.stopLoop()
+      this.teardownWordEvents()
+      return
+    }
+
+    if (!wasRunning && this.isRunning) {
+      this.words = []
+      this.setupWords()
+      this.previousWordIds = Array.from(this.el.querySelectorAll(".falling-word")).map(el => el.dataset.id)
+      this.previousCurrentWordId = this.el.dataset.currentWord
+      this.startLoop()
+      return
+    }
+
+    if (!this.isRunning) return
+
     const currentWordIds = Array.from(this.el.querySelectorAll(".falling-word"))
       .map(el => el.dataset.id)
     const currentCurrentWordId = this.el.dataset.currentWord
@@ -205,27 +228,29 @@ Hooks.CatchIt = {
   },
 
   setupWords() {
-    const els = this.el.querySelectorAll(".falling-word")
+    const els = Array.from(this.el.querySelectorAll(".falling-word"))
+    const laneOrder = [...Array(LANE_PERCENTS.length).keys()]
+
+    for (let i = laneOrder.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+        ;[laneOrder[i], laneOrder[j]] = [laneOrder[j], laneOrder[i]]
+    }
 
     els.forEach((el, index) => {
-      const laneIndex = index % LANE_PERCENTS.length
+      const laneIndex = laneOrder[index % laneOrder.length]
       const word = {
         id: el.dataset.id,
         el,
         x: this.laneX(laneIndex),
         y: -100 - (index * 120),
         speed: 1 + Math.random() * 1.5,
-
         dragging: false,
-
         offsetX: 0,
         offsetY: 0,
-
         respawnAt: null
       }
 
       this.attachDragEvents(word)
-
       this.words.push(word)
     })
   },
@@ -301,6 +326,11 @@ Hooks.CatchIt = {
   },
 
   loop(timestamp) {
+    if (!this.isRunning) {
+      this.frame = null
+      return
+    }
+
     this.words.forEach(word => {
 
       if (word.dragging) {
@@ -317,16 +347,36 @@ Hooks.CatchIt = {
         this.respawnWord(word)
       }
 
-      word.y += word.speed
+      const groundEl = document.getElementById("ground")
+      const wordsLayerRect = this.el.getBoundingClientRect()
+      const groundRect = groundEl.getBoundingClientRect()
+      const groundTopRelativeToLayer = groundRect.top - wordsLayerRect.top
 
-      if (word.y >= GROUND_Y) {
+      const wordBottom = word.y + word.el.offsetHeight
+
+      if (wordBottom < groundTopRelativeToLayer) {
+        word.y += word.speed
+      }
+
+      if (wordBottom >= groundTopRelativeToLayer && !word.respawnAt) {
         word.respawnAt = timestamp + 2000
       }
 
       this.render(word)
     })
 
-    requestAnimationFrame(this.loop)
+    this.frame = requestAnimationFrame(this.loop)
+  },
+
+  startLoop() {
+    if (!this.isRunning || this.frame) return
+    this.frame = requestAnimationFrame(this.loop)
+  },
+
+  stopLoop() {
+    if (!this.frame) return
+    cancelAnimationFrame(this.frame)
+    this.frame = null
   },
 
   render(word) {
@@ -366,8 +416,8 @@ Hooks.CatchIt = {
   },
 
   destroyed() {
+    this.stopLoop()
     this.teardownWordEvents()
-    cancelAnimationFrame(this.frame)
   }
 }
 

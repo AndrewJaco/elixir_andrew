@@ -98,6 +98,53 @@
   animation: heartbeat 1.2s ease-in-out infinite;
 }
 
+@keyframes feedback-correct {
+
+  0%,
+  100% {
+    border-color: var(--color-primary);
+    transform: scale(1);
+  }
+
+  50% {
+    border-color: #22c55e;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes feedback-incorrect {
+
+  0%,
+  100% {
+    border-color: var(--color-primary);
+    transform: scale(1);
+  }
+
+  50% {
+    border-color: #ef4444;
+    transform: scale(1.1);
+  }
+
+  25%,
+  75% {
+    border-color: #ef4444;
+    transform: scale(1.1);
+  }
+
+  50% {
+    border-color: var(--color-primary);
+    transform: scale(1);
+  }
+}
+
+.animate-feedback-correct {
+  animation: feedback-correct 0.6s ease;
+}
+
+.animate-feedback-incorrect {
+  animation: feedback-incorrect 0.6s ease;
+}
+
 .dying-heart {
   animation: heartbeat .75s ease-in-out infinite;
 }
@@ -302,4 +349,9 @@
 .falling-word {
   touch-action: none;
   user-select: none;
+}
+
+.ground-gradient {
+  background: #f5b547;
+  background: linear-gradient(0deg, rgba(245, 181, 71, 1) 65%, rgba(194, 144, 37, 1) 100%);
 }

@@ -53,7 +53,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.ClueGenerator do
       end)
       
       # Uncomment below to make actual AI call:
-      # case Service.generate_definitions(padded_words, progress) do
+      # case Service.generate_definitions(spelling_words, progress) do
       #   {:ok, %{"words" => words_with_clues}} ->
       #     Logger.info("✓ AI Response received!")
       #     Logger.info("Words with clues: #{inspect(words_with_clues, pretty: true)}")

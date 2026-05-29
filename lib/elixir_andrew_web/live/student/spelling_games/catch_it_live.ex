@@ -26,7 +26,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
     socket =
       socket
       |> assign(:spelling_words, spelling_words)
-      |> assign(:game_state, if(pregenerated_clues, do: :in_round, else: :loading))
+      |> assign(:game_state, if(pregenerated_clues, do: :intro, else: :loading))
       |> assign(:error, nil)
       |> assign(:words_with_clues, pregenerated_clues)
       |> assign(:current_word, nil)
@@ -34,6 +34,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
       |> assign(:words_to_drop, [])
       |> assign(:score, 0)
       |> assign(:current_bonus, 10)
+      |> assign(:feedback_state, nil)
       |> assign(:initialized, false)
 
       if connected?(socket) and not socket.assigns.initialized do
@@ -51,26 +52,44 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="catch-it-game">
-      <h1>Catch It</h1>
-       
+    <div class="catch-it-game flex flex-1 px-4">
       <%= if @game_state == :loading do %>
         <p>Loading game...</p>
       <% end %>
       <%= if @game_state == :error do %>
         <p class="error">Error: <%= @error %></p>
       <% end %>
-      <%= if @game_state in [:in_round, :game_over] do %>
+      <%= if @game_state in [:intro, :in_round, :game_over] do %>
         <div id="catch-it-container"
-            phx-hook="CatchIt"
-            data-current-word={@current_word.id}
-            class="relative w-full h-[700px] border-2 border-gray-300 rounded-lg overflow-hidden bg-blue-50"
+            class="flex flex-col flex-1 w-full border-2 border-gray-300 rounded-lg overflow-hidden bg-blue-50"
         >
-          <div id="scoreboard" class="absolute top-2 left-2 bg-white bg-opacity-75 p-2 rounded shadow">
-            <p>Score: <%= @score %></p>
-            <p>Bonus: <%= @current_bonus %></p>
+          <div id="catch_it_topbar" class="flex-shrink-0 w-full bg-white p-2 border-b-2 border-gray-300 flex justify-center gap-4 items-center">
+            <div class={"scoreboard border-2 border-primary rounded-lg m-2 px-4 py-2 h-24 w-48 flex flex-col justify-center items-center #{
+              case @feedback_state do
+                :correct -> "animate-feedback-correct"
+                :incorrect -> "animate-feedback-incorrect"
+                _ -> ""
+              end
+            }"}> 
+              <p class="text-lg">Score: <%= @score %></p>
+              <p class="text-lg">Bonus: <%= @current_bonus %></p>
+            </div>
+            <div class="m-2 px-4 py-2 w-1/3 h-24 flex flex-col justify-center items-center">
+              <%= if @game_state !== :game_over do %>
+                <p><%= @current_word_index + 1 %> / <%= length(@words_with_clues) %></p>
+              <% end %>
+              <%= if @current_word do %>
+                <p class="text-lg">Clue: <%= @current_word.clue %></p>
+              <% end %>
+            </div>
           </div>
-          <div id="words-layer" >
+          <div id="words-layer"
+            phx-hook="CatchIt"
+            data-current-word={if @current_word, do: @current_word.id, else: ""}
+            data-running={to_string(@game_state in [:intro, :in_round])}
+            class="relative flex-1 w-full bg-[url('/images/wavy1.svg')] bg-cover bg-no-repeat bg-center overflow-hidden"
+          >
+          
             <%= for word <- @words_to_drop do %>
               <div 
                 id={"word-#{word.id}"} 
@@ -80,31 +99,39 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
                 <%= word.word %>
               </div>
             <% end %>
+            <div
+              id="ground" 
+              class="absolute bottom-0 w-full h-[130px] flex justify-center ground-gradient"
+              >
+              <div
+                id="bucket"
+                class="self-center w-40 h-24 bg-gray-800 rounded-xl flex items-center justify-center text-white text-lg"
+                >
+                Catch Here
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div
-          id="bucket"
-          class="absolute bottom-6 left-1/2 -translate-x-1/2 w-40 h-24 bg-gray-800 rounded-xl flex items-center justify-center text-white text-lg"
-        >
-          Catch Here
+      <% end %>
+      <%= if @game_state == :intro do %>  
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div class="wordsearch-modal px-8 py-10 border-2 border-primary rounded-lg text-center game-shadow flex flex-col items-center justify-center text-center overflow-auto">
+            <h1 class="text-3xl font-bold mb-4">How to Play</h1>
+            <p class="mb-6">Read the clue at the top and catch the correct fish!</p>
+            <button phx-click="clear_intro" class="btn btn-primary">Ok!</button>
+          </div>
         </div>
-
-        <div class="absolute top-0 w-full text-center">
-          <p>Clue: <%= @current_word.clue %></p>
-          <p>Current Word debug: <%= @current_word.word %></p>
-        </div>
-
-        </div>
-
       <% end %>
       <%= if @game_state == :game_over do %>
-        <div class="absolute inset-0 flex items-center justify-center">
-          <div class="p-8 border-2 border-alert rounded-lg text-center game-shadow wordsearch-modal">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div class="wordsearch-modal p-8 border-2 border-alert rounded-lg text-center game-shadow w-[70%] h-[70%] flex flex-col items-center justify-center text-center overflow-auto">
             <h1 class="text-3xl font-bold mb-4">Congratulations!</h1>
             <p class="mb-6">You caught all the words!</p>
             <p class="mb-6 text-xl font-bold text-accent"><%= @score %> Points!</p>
-            <button phx-click="restart_game" class="btn btn-primary">Play Again</button>
-            <.link navigate={~p"/student/home"} class="btn btn-alert ml-4">Exit</.link>
+            <div class="flex gap-4"> 
+              <button phx-click="restart_game" class="btn btn-primary">Play Again</button>
+              <.link navigate={~p"/student/home"} class="btn btn-alert ml-4">Exit</.link>
+            </div>
           </div>
         </div>
       <% end %>
@@ -163,7 +190,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
        current_word: current_word,
        words_to_drop: words_to_drop,
        current_word_index: 0,
-       game_state: :in_round
+       game_state: :intro
      )}
   end
 
@@ -194,10 +221,21 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
       )}
     else
       Logger.info("No more words left. Game over.")
-      {:noreply, assign(socket, game_state: :game_over)}
+      {:noreply, assign(socket, 
+        game_state: :game_over,
+        current_word: nil,
+        words_to_drop: [],
+        current_word_index: 0,
+        current_bonus: 0
+        )}
     end
   end
   
+  @impl true
+  def handle_event("clear_intro", _params, socket) do
+    {:noreply, assign(socket, :game_state, :in_round)}
+  end
+
   @impl true
   def handle_event("word_caught", %{"id" => word_id}, socket) do
     word_id = String.to_integer(word_id)
@@ -207,10 +245,15 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
     if current_word && current_word.id == word_id do
       Logger.info("Correct word caught! Incrementing score.")
       socket = update(socket, :score, &(&1 + socket.assigns.current_bonus))
+        |> assign(:feedback_state, :correct)
+      
+      Process.send_after(self(), :clear_feedback, 600)
       send(self(), :next_round)
       {:noreply, socket}
     else
       Logger.info("Incorrect word caught. Bonus decreased.")
+      socket = assign(socket, :feedback_state, :incorrect)
+      
       socket =
         if socket.assigns.current_bonus > 0 do
           update(socket, :current_bonus, fn bonus -> max(bonus - 2, 0) end)
@@ -218,6 +261,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
           socket
         end
 
+      Process.send_after(self(), :clear_feedback, 600)
       {:noreply, socket}
     end
   end
@@ -227,5 +271,10 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
     socket = assign(socket, score: 0, current_bonus: 10)
     send(self(), :initialize_game)
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(:clear_feedback, socket) do
+    {:noreply, assign(socket, :feedback_state, nil)}
   end
 end
