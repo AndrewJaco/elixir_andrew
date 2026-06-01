@@ -19,6 +19,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.HangmanLive do
       socket
       |> assign(:student_id, student_id)
       |> assign(:spelling_words, spelling_words)
+      |> assign(:game_state, :loading)
       |> initialize_game()
     
     {:ok, socket}

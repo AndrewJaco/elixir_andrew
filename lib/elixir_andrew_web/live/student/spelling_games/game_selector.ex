@@ -3,7 +3,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.GameSelector do
   Selects spelling games based on user play history to ensure variety.
   """
 
-  @spelling_games ["hangman", "word_search", "matching", "crossword", "unscramble", "catch_it", "flashcards"]
+  @spelling_games ["hangman", "word_search", "crossword", "unscramble", "catch_it"]
 
   @doc """
   Selects the next spelling game based on the user's recent game history.
@@ -19,7 +19,7 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.GameSelector do
   
   ## Examples
       iex> select_game([1, 2, 3], "spelling")
-      "crossword"  # or any game except hangman, word_search, matching
+      "crossword"
   """
   def select_game(game_history, "spelling") do
     last_three = Enum.take(game_history, 3)
@@ -53,9 +53,9 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.GameSelector do
   String name of a non-AI game
   """
   def select_fallback_game(game_history) do
-    # Non-AI games: hangman, word_search, unscramble, catch_it, flashcards
-    # Exclude: crossword, matching (which require AI)
-    non_ai_games = ["hangman", "word_search", "unscramble", "catch_it", "flashcards"]
+    # Non-AI games: hangman, word_search, unscramble
+    # Exclude: crossword, catch it (which require AI)
+    non_ai_games = ["hangman", "word_search", "unscramble"]
     
     # Get games not recently played
     recent_games = Enum.take(game_history, 3)

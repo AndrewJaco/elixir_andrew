@@ -48,6 +48,13 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.UnscrambleLive do
       <button phx-click="start_game" class="btn btn-primary mt-4">Start Game</button>
       <% end %>
 
+      <%= if @game_state == :loading do %>
+        <div class="flex flex-col flex-1 justify-center items-center gap-4">
+          <span class="loading loading-ring loading-xl"></span>
+          <div class="text-xl text-center text-primary">Loading game...</div>
+        </div>
+      <% end %>
+
       <%= if @game_state == :in_round || @game_state == :round_success || @game_state == :round_fail do %>
         <div class="flex flex-col items-center justify-center">
           <%= if @game_state == :round_success do %>

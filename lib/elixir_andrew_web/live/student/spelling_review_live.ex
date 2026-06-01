@@ -1,7 +1,6 @@
 defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
   use ElixirAndrewWeb, :live_view
-  alias ElixirAndrewWeb.Student.SpellingGames.GameSelector
-  alias ElixirAndrewWeb.Student.SpellingGames.Crossword.ClueCache
+  alias ElixirAndrewWeb.Student.SpellingGames.{GameSelector, ClueGenerator, Crossword.ClueCache}
 
   def mount(params, _session, socket) do
     student_id = socket.assigns.current_user.id
@@ -49,9 +48,9 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
         |> assign(:game_history, game_history)
         |> assign(:selected_game, selected_game)
         |> assign(:user_progress, user_progress)
-
-      # Start background generation of clues for games that need it
-      if selected_game in ["crossword", "flashcards", "catch_it"] do
+        
+        # Start background generation of clues for games that need it
+        if selected_game in ["crossword", "catch_it"] do
         send(self(), :generate_clues)
       end
 
@@ -129,10 +128,10 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
             </ul>
             <div class="flex flex-col space-y-4 flex-2 mx-8">
               <button phx-click="restart" class="flex-1 px-4 py-2 bg-secondary text-white gem-btn secondary">Review Again</button>
-                  <%= if @selected_game == "crossword" and @clue_generation_status == :generating do %>
+                  <%= if @selected_game in ["crossword", "catch_it"] and @clue_generation_status == :generating do %>
                 <button disabled class="flex-4 px-4 py-2 bg-base-300 text-base-content gem-btn">
                   <span class="loading loading-spinner loading-sm"></span>
-                  Preparing Crossword...
+                  Preparing Game...
                 </button>
               <% else %>
                 <button phx-click="start_game" class="flex-4 px-4 py-2 bg-accent text-white gem-btn accent">Start Spelling Game</button>
@@ -142,8 +141,7 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
       <% end %>
       <div>
         <a href={"/student/spelling_games/hangman?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="text-sm text-accent underline">Debug: Hangman</a>
-        <a href={"/student/spelling_games/flashcards?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Flashcards</a>
-        <a href={"/student/spelling_games/matching?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Matching</a>
+        <%!-- <a href={"/student/spelling_games/matching?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Matching</a> --%>
         <a href={"/student/spelling_games/word_search?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Word Search</a>
         <a href={"/student/spelling_games/crossword?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Crossword</a>
         <a href={"/student/spelling_games/unscramble?spelling_words=#{Enum.join(@spelling_words, ",")}" } class="ml-4 text-sm text-accent underline">Debug: Unscramble</a>
@@ -211,7 +209,7 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
     game = socket.assigns.selected_game
     
     # Check if clues are ready
-    if game in ["crossword", "flashcards", "catch_it"] do
+    if game in ["crossword", "catch_it"] do
       case socket.assigns.clue_generation_status do
         :ready -> 
           # Clues ready, store in cache and navigate with cache key
@@ -254,25 +252,22 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
     # Start async task to generate clues
     parent = self()
     spelling_words = socket.assigns.spelling_words
-    user_progress = socket.assigns.user_progress
+    user_id = socket.assigns.student_id
     game = socket.assigns.selected_game
     
     Task.start(fn ->
       result = case game do
         "crossword" -> 
-          ElixirAndrewWeb.Student.SpellingGames.Crossword.CrosswordGenerator.get_crossword_clues(
+          ClueGenerator.generate_clues(
             spelling_words,
-            user_progress
-          )
-        "flashcards" -> 
-          ElixirAndrewWeb.Student.SpellingGames.FlashcardsLive.get_definitions(
-            spelling_words,
-            user_progress
+            user_id,
+            :crossword
           )
         "catch_it" ->
-          ElixirAndrewWeb.Student.SpellingGames.CatchItLive.get_definitions(
+          ClueGenerator.generate_clues(
             spelling_words,
-            user_progress
+            user_id,
+            :catch_it
           )
         _ -> {:error, "Unknown game type: #{game}"}
       end
@@ -289,7 +284,7 @@ defmodule ElixirAndrewWeb.Student.SpellingReviewLive do
     socket = assign(socket, clues: clues, clue_generation_status: :ready)
       
     # Auto-navigate if user is on completed view (waiting to play)
-    if socket.assigns.view_state == :completed and socket.assigns.selected_game in ["crossword", "flashcards", "catch_it"] do
+    if socket.assigns.view_state == :completed and socket.assigns.selected_game in ["crossword", "catch_it"] do
       cache_key = ClueCache.put(socket.assigns.student_id, clues)
       query_params = %{
         "spelling_words" => Enum.join(socket.assigns.spelling_words, ","),

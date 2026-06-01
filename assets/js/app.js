@@ -74,8 +74,10 @@ Hooks.MobileKeyboard = {
     })
 
     this.el.addEventListener("keydown", (e) => {
+      // When mobile input is focused, don't let key events bubble to phx-window-keydown.
+      e.stopPropagation()
+
       if (e.key === "Backspace") {
-        e.stopPropagation() // Prevent window keydown from also handling backspace
         this.pushEvent("mobile_key_input", { key: "Backspace" })
         e.preventDefault()
       }

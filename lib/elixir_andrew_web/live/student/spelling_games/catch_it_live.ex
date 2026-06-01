@@ -54,7 +54,10 @@ defmodule ElixirAndrewWeb.Student.SpellingGames.CatchItLive do
     ~H"""
     <div class="catch-it-game flex flex-1 px-4">
       <%= if @game_state == :loading do %>
-        <p>Loading game...</p>
+        <div class="flex flex-col flex-1 justify-center items-center gap-4">
+          <span class="loading loading-ring loading-xl"></span>
+          <div class="text-xl text-center text-primary">Loading game...</div>
+        </div>
       <% end %>
       <%= if @game_state == :error do %>
         <p class="error">Error: <%= @error %></p>
