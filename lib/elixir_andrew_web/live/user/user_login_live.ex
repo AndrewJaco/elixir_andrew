@@ -4,6 +4,7 @@ defmodule ElixirAndrewWeb.User.UserLoginLive do
   def render(assigns) do
     ~H"""
     <div class="mt-28 mx-auto max-w-sm">
+      <div class="tri-stripe" data-navigate-animation="slide-right"></div>
       <.header class="text-center">
         Log in to account
       </.header>

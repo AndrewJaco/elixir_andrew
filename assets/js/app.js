@@ -105,31 +105,49 @@ Hooks.NavigationAnimator = {
       this.themeSynced = true
     }
 
+    const stripe = this.el.querySelector(".tri-stripe")
+    if (stripe) {
+      stripe.classList.remove("is-visible")
+      stripe.classList.remove("animate-out")
+      stripe.classList.remove("animate-in")
+      stripe.classList.add("animate-in")
+      setTimeout(() => {
+        stripe.classList.remove("animate-in")
+        stripe.classList.add("is-visible")
+      }, 650)
+    }
+
+    const playStripeOut = () => {
+      const stripe = this.el.querySelector(".tri-stripe")
+      if (!stripe || stripe.classList.contains("animate-out")) {
+        return false
+      }
+
+      const animationType = stripe.getAttribute("data-navigate-animation")
+      if (animationType === "none") {
+        return false
+      }
+
+      if (animationType === "random") {
+        const animations = ["slide-right", "slide-left", "scale-shrink", "slide-down", "fade-out"]
+        const randomAnimation = animations[Math.floor(Math.random() * animations.length)]
+        stripe.setAttribute("data-navigate-animation", randomAnimation)
+      }
+
+      stripe.classList.remove("is-visible")
+      stripe.classList.remove("animate-in")
+      stripe.classList.add("animate-out")
+      return true
+    }
+
     // Listen for clicks on links and animate the stripe before navigation
     this.el.addEventListener("click", (e) => {
       const link = e.target.closest("a[href]")
       if (link && link.getAttribute("data-method") !== "delete") {
-        const stripe = this.el.querySelector(".tri-stripe")
-        if (stripe && !stripe.classList.contains("animate-out")) {
-          // Check if animation is disabled
-          const animationType = stripe.getAttribute("data-navigate-animation")
-          if (animationType === "none") {
-            // No animation, navigate immediately
-            // Let default navigation proceed
-            return
-          }
-          if (animationType === "random") {
-            const animations = ["slide-right", "slide-left", "scale-shrink", "slide-down", "fade-out"]
-            const randomAnimation = animations[Math.floor(Math.random() * animations.length)]
-            stripe.setAttribute("data-navigate-animation", randomAnimation)
-          }
-          
+        if (playStripeOut()) {
           // Prevent default navigation
           e.preventDefault()
           e.stopPropagation()
-
-          // Add animation class
-          stripe.classList.add("animate-out")
 
           // After animation completes, navigate
           setTimeout(() => {
@@ -141,6 +159,39 @@ Hooks.NavigationAnimator = {
         }
       }
     }, true) // Use capture phase to intercept before other handlers
+
+    this.el.addEventListener("submit", (e) => {
+      const form = e.target
+      if (!(form instanceof HTMLFormElement)) {
+        return
+      }
+
+      if (form.dataset.skipStripeAnimation === "true") {
+        form.dataset.skipStripeAnimation = "false"
+        return
+      }
+
+      if (!form.hasAttribute("action") || form.hasAttribute("phx-submit")) {
+        return
+      }
+
+      if (!playStripeOut()) {
+        return
+      }
+
+      e.preventDefault()
+      e.stopPropagation()
+
+      const submitter = e.submitter
+      setTimeout(() => {
+        form.dataset.skipStripeAnimation = "true"
+        if (submitter) {
+          form.requestSubmit(submitter)
+        } else {
+          form.requestSubmit()
+        }
+      }, 600)
+    }, true)
   },
 
   reconnected() {

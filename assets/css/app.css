@@ -387,6 +387,16 @@ body {
   color: var(--color-light);
 }
 
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100vw);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
 @keyframes slide-right {
   from {
     transform: translateX(0);
@@ -394,6 +404,16 @@ body {
 
   to {
     transform: translateX(100vw);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100vw);
+  }
+
+  to {
+    transform: translateX(0);
   }
 }
 
@@ -444,6 +464,14 @@ body {
   position: absolute;
   top: 80%;
   left: 0;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.tri-stripe.is-visible,
+.tri-stripe.animate-in,
+.tri-stripe.animate-out {
+  opacity: 1;
 }
 
 /* Animation modifiers */
@@ -467,7 +495,29 @@ body {
   animation: scale-shrink 0.6s ease-in-out forwards;
 }
 
+.tri-stripe[data-navigate-animation="slide-right"].animate-in {
+  animation: slide-in-right 0.6s ease-in-out forwards;
+}
+
+.tri-stripe[data-navigate-animation="slide-left"].animate-in {
+  animation: slide-in-left 0.6s ease-in-out forwards;
+}
+
+.tri-stripe[data-navigate-animation="slide-in-right"].animate-in {
+  animation: slide-in-right 0.6s ease-in-out forwards;
+}
+
+.tri-stripe[data-navigate-animation="slide-in-left"].animate-in {
+  animation: slide-in-left 0.6s ease-in-out forwards;
+}
+
+.tri-stripe[data-navigate-animation="slide-down"].animate-in,
+.tri-stripe[data-navigate-animation="fade-out"].animate-in,
+.tri-stripe[data-navigate-animation="scale-shrink"].animate-in {
+  animation: slide-in-right 0.6s ease-in-out forwards;
+}
+
 /* Disable animation when data attribute is "none" */
 .tri-stripe[data-navigate-animation="none"] {
-  /* No animation */
+  animation: none;
 }
