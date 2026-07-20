@@ -19,19 +19,28 @@ defmodule ElixirAndrewWeb.UserSessionController do
   end
 
   defp create(conn, %{"user" => user_params}, info) do
-    %{"username" => username, "password" => password} = user_params
+    username = user_params["username"]
+    password = user_params["password"]
 
-    if user = Accounts.get_user_by_username_and_password(username, password) do
-      conn
-      |> put_flash(:info, info)
-      |> UserAuth.log_in_user(user, user_params)
-    else
-      # In order to prevent user enumeration attacks, don't disclose whether the email is registered.
-      conn
-      |> put_flash(:error, "Invalid username or password")
-      |> put_flash(:username, String.slice(username, 0, 20))
-      |> redirect(to: ~p"/users/log_in")
+    case Accounts.get_user_by_username_and_password(username, password) do
+      user when not is_nil(user) ->
+        conn
+        |> put_flash(:info, info)
+        |> UserAuth.log_in_user(user, user_params)
+
+      _ ->
+        # In order to prevent user enumeration attacks, don't disclose whether the email is registered.
+        conn
+        |> put_flash(:error, "Invalid username or password")
+        |> put_flash(:username, String.slice(username || "", 0, 20))
+        |> redirect(to: ~p"/users/log_in")
     end
+  end
+
+  defp create(conn, _params, _info) do
+    conn
+    |> put_flash(:error, "Invalid username or password")
+    |> redirect(to: ~p"/users/log_in")
   end
 
   def delete(conn, _params) do

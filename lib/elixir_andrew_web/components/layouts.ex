@@ -22,19 +22,18 @@ defmodule ElixirAndrewWeb.Layouts do
   def app(assigns) do
     # Set responsive height class based on scrollable setting
     height_class = if assigns[:scrollable], do: "min-h-screen", else: "h-screen"
-    main_class = "flex-1 flex flex-col p-4"
     dropdown_id = if assigns[:scrollable], do: "dropdown_menu_scrollable", else: "dropdown_menu"
     
-    assigns = assign(assigns, height_class: height_class, main_class: main_class, dropdown_id: dropdown_id)
+    assigns = assign(assigns, height_class: height_class, dropdown_id: dropdown_id)
     
     ~H"""
     <div 
-      class={"#{@theme} flex flex-1 flex-col #{@height_class} bg-light"}
+      class={"#{@theme} flex flex-1 flex-col #{@height_class} bg-light relative"}
       id="app-wrapper"
-      phx-hook="ThemeHandler"
+      phx-hook="NavigationAnimator"
       data-theme={@theme}
       >
-      <header class="flex items-center ml-auto px-4 sm:px-6 lg:px-8">
+      <header class="flex items-center ml-auto px-4 sm:px-6 lg:px-8 fixed top-0 right-0 z-20">
         <div class="relative py-3 z-10">
           <button 
             class="bg-secondary rounded-full relative border-2 border-accent outline-none focus:outline-none cursor-pointer" 
@@ -94,7 +93,7 @@ defmodule ElixirAndrewWeb.Layouts do
           </div>
         </div>
       </header>
-        <main class={@main_class}>
+        <main class="flex-1 flex flex-col">
           <.flash_group flash={@flash}/>
           <%= @inner_content %>
         </main>

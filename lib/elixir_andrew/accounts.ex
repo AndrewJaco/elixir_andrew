@@ -44,6 +44,9 @@ defmodule ElixirAndrew.Accounts do
     if User.valid_password?(user, password), do: user
   end
 
+  # Catch-all clause for nil or invalid inputs
+  def get_user_by_username_and_password(_username, _password), do: nil
+
   @doc """
   Gets a user by username.
   Returns `nil` if the User does not exist.
@@ -262,11 +265,17 @@ defmodule ElixirAndrew.Accounts do
 
     Ecto.Multi.new()
     |> Ecto.Multi.update(:user, changeset)
-    |> Ecto.Multi.delete_all(:tokens, UserToken.by_user_and_contexts_query(user, :all))
+     |> Ecto.Multi.delete_all(:tokens, UserToken.by_user_and_contexts_query(user, ["reset_password", "change:#{user.email}"]))
     |> Repo.transaction()
     |> case do
-      {:ok, %{user: user}} -> {:ok, user}
-      {:error, :user, changeset, _} -> {:error, changeset}
+      {:ok, %{user: user}} -> 
+        {:ok, user}
+      {:error, :user, changeset, _} -> 
+        {:error, changeset}
+      {:error, _step, _reason, _changes} -> 
+        # Return a changeset with a generic error if something else fails
+        changeset = User.password_changeset(user, attrs)
+        {:error, Ecto.Changeset.add_error(changeset, :base, "An error occurred during password update")}
     end
   end
 
@@ -401,8 +410,14 @@ defmodule ElixirAndrew.Accounts do
     |> Ecto.Multi.delete_all(:tokens, UserToken.by_user_and_contexts_query(user, :all))
     |> Repo.transaction()
     |> case do
-      {:ok, %{user: user}} -> {:ok, user}
-      {:error, :user, changeset, _} -> {:error, changeset}
+      {:ok, %{user: user}} -> 
+        {:ok, user}
+      {:error, :user, changeset, _} -> 
+        {:error, changeset}
+      {:error, _step, _reason, _changes} -> 
+        # Return a changeset with a generic error if something else fails
+        changeset = User.password_changeset(user, attrs)
+        {:error, Ecto.Changeset.add_error(changeset, :base, "An error occurred during password reset")}
     end
   end  
 

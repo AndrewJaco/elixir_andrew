@@ -5,7 +5,7 @@ defmodule ElixirAndrewWeb.User.UserResetPasswordLive do
 
   def render(assigns) do
     ~H"""
-    <div class="mx-auto max-w-sm">
+    <div class="mt-28 mx-auto max-w-sm">
       <.header class="text-center">Reset Password</.header>
 
       <.simple_form
@@ -47,7 +47,8 @@ defmodule ElixirAndrewWeb.User.UserResetPasswordLive do
           Accounts.change_user_password(user)
 
         _ ->
-          %{}
+          # Create a proper empty changeset to avoid nil issues
+          Ecto.Changeset.change(%{})
       end
 
     {:ok, assign_form(socket, form_source), temporary_assigns: [form: nil]}
@@ -81,6 +82,12 @@ defmodule ElixirAndrewWeb.User.UserResetPasswordLive do
       |> put_flash(:error, "Reset password link is invalid or it has expired.")
       |> redirect(to: ~p"/")
     end
+  end
+
+  defp assign_user_and_token(socket, _params) do
+    socket
+    |> put_flash(:error, "Reset password link is invalid or it has expired.")
+    |> redirect(to: ~p"/")
   end
 
   defp assign_form(socket, %{} = source) do

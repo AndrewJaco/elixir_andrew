@@ -5,7 +5,7 @@ defmodule ElixirAndrewWeb.User.UserForgotPasswordLive do
 
   def render(assigns) do
     ~H"""
-    <div class="mx-auto max-w-sm">
+    <div class="mt-28 mx-auto max-w-sm">
       <.header class="text-center">
         Forgot your password?
         <:subtitle>We'll send a password reset link to your inbox</:subtitle>

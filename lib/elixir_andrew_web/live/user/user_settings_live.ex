@@ -5,13 +5,13 @@ defmodule ElixirAndrewWeb.User.UserSettingsLive do
 
   def render(assigns) do
     ~H"""
-    <div class="px-32 py-4 m-12 h-fit border border-dark rounded-lg">
-      <.header class="text-center">
+    <div class="px-32 py-4 m-12 h-fit max-w-3xl self-center">
+      <div class="text-center text-3xl font-bold">
         Profile Settings
-        <:subtitle>Manage your profile</:subtitle>
-      </.header>
+        <div class="text-lg text-secondary">Manage your profile</div>
+      </div>
 
-      <div class="space-y-12">
+      <div class="space-y-18">
         <div>
           <.simple_form
             for={@email_form}
@@ -62,19 +62,10 @@ defmodule ElixirAndrewWeb.User.UserSettingsLive do
           <.simple_form
             for={@password_form}
             id="password_form"
-            action={~p"/users/log_in?_action=password_updated"}
-            method="post"
             phx-change="validate_password"
             phx-submit="update_password"
-            phx-trigger-action={@trigger_submit}
           >
             <label class="block text-lg font-medium text-gray-700 mb-1">Change Password for: <span class="font-semibold"><%= @current_email %></span></label>
-            <input
-              name={@password_form[:email].name}
-              type="hidden"
-              id="hidden_user_email"
-              value={@current_email}
-            />
             <.input field={@password_form[:password]} type="password" label="New password" required />
             <.input
               field={@password_form[:password_confirmation]}
@@ -190,12 +181,16 @@ defmodule ElixirAndrewWeb.User.UserSettingsLive do
 
     case Accounts.update_user_password(user, password, user_params) do
       {:ok, user} ->
+        # Create a fresh empty password changeset to clear the form
         password_form =
           user
-          |> Accounts.change_user_password(user_params)
+          |> Accounts.change_user_password()
           |> to_form()
 
-        {:noreply, assign(socket, trigger_submit: true, password_form: password_form)}
+        {:noreply, 
+          socket 
+          |> assign(password_form: password_form, current_password: nil)
+          |> put_flash(:info, "Password updated successfully.")}
 
       {:error, changeset} ->
         {:noreply, assign(socket, password_form: to_form(changeset))}

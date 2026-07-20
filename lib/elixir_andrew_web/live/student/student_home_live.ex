@@ -11,24 +11,20 @@ defmodule ElixirAndrewWeb.Student.StudentHomeLive do
 
   def render(assigns) do
     ~H"""
-    <div class="mx-auto max-w-full overflow-hidden">
+    <div class="flex flex-col flex-1 justify-center items-center mt-16">
       <div class="text-center">
-        <p class="text-3xl"><%= @current_user.first_name %> <%= @current_user.last_name %> </p>
-        <p class="text-accent">Welcome to your student home page! </p>
+        <p class="text-3xl">Hello <%= @current_user.first_name %> <%= @current_user.last_name %>! </p>
+        <p class="text-accent">Choose an action. </p>
       </div>
 
-      <p class="text-center">
-        Here you can find lessons and homework.
-      </p>
-
-      <div class="mt-6 flex flex-col justify-center">
+      <div class="mt-6 flex flex-col flex-1 justify-center items-center">
         <div class="block-wrapper">
           <.floating_block_link to={~p"/student/#{@student_id}/communication"} class="rectangle small">
             My Homework
           </.floating_block_link>
         </div>
 
-        <div class="flex items-center gap-4 md:gap-8 lg:gap-24 mt-10 px-4 md:px-12">
+        <div class="flex items-center gap-4 md:gap-8 lg:gap-24 mt-6 px-4 md:px-12">
           <div class="block-wrapper">
             <.floating_block_link to={~p"/student/spelling_review"} class="rectangle small">
               Spelling

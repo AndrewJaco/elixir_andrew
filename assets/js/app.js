@@ -89,6 +89,69 @@ Hooks.MobileKeyboard = {
   }
 }
 
+Hooks.NavigationAnimator = {
+  mounted() {
+    // Only sync theme once per session, not on every reconnection
+    if (!this.themeSynced) {
+      const savedTheme = localStorage.getItem("theme")
+      const serverTheme = this.el.dataset.theme
+
+      if (savedTheme && savedTheme !== serverTheme) {
+        this.pushEvent("sync-theme", { theme: savedTheme })
+      } else {
+        localStorage.setItem("theme", serverTheme)
+      }
+
+      this.themeSynced = true
+    }
+
+    // Listen for clicks on links and animate the stripe before navigation
+    this.el.addEventListener("click", (e) => {
+      const link = e.target.closest("a[href]")
+      if (link && link.getAttribute("data-method") !== "delete") {
+        const stripe = this.el.querySelector(".tri-stripe")
+        if (stripe && !stripe.classList.contains("animate-out")) {
+          // Check if animation is disabled
+          const animationType = stripe.getAttribute("data-navigate-animation")
+          if (animationType === "none") {
+            // No animation, navigate immediately
+            // Let default navigation proceed
+            return
+          }
+          if (animationType === "random") {
+            const animations = ["slide-right", "slide-left", "scale-shrink", "slide-down", "fade-out"]
+            const randomAnimation = animations[Math.floor(Math.random() * animations.length)]
+            stripe.setAttribute("data-navigate-animation", randomAnimation)
+          }
+          
+          // Prevent default navigation
+          e.preventDefault()
+          e.stopPropagation()
+
+          // Add animation class
+          stripe.classList.add("animate-out")
+
+          // After animation completes, navigate
+          setTimeout(() => {
+            const href = link.getAttribute("href")
+            if (href) {
+              window.location.href = href
+            }
+          }, 600) // Match animation duration
+        }
+      }
+    }, true) // Use capture phase to intercept before other handlers
+  },
+
+  reconnected() {
+    // On reconnection, just ensure localStorage has the current server theme
+    const serverTheme = this.el.dataset.theme
+    if (serverTheme) {
+      localStorage.setItem("theme", serverTheme)
+    }
+  }
+}
+
 Hooks.ThemeHandler = {
   mounted() {
     // Only sync theme once per session, not on every reconnection

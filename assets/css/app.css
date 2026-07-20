@@ -382,3 +382,92 @@ body {
 .gem-btn.alert {
   --gem-color: var(--color-alert);
 }
+
+.home-background {
+  color: var(--color-light);
+}
+
+@keyframes slide-right {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100vw);
+  }
+}
+
+@keyframes slide-left {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100vw);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes scale-shrink {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.tri-stripe {
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary) 33%, var(--color-secondary) 33%, var(--color-secondary) 66%, var(--color-accent) 66%, var(--color-accent) 100%);
+  width: 100%;
+  height: 10%;
+  position: absolute;
+  top: 80%;
+  left: 0;
+}
+
+/* Animation modifiers */
+.tri-stripe[data-navigate-animation="slide-right"].animate-out {
+  animation: slide-right 0.6s ease-in-out forwards;
+}
+
+.tri-stripe[data-navigate-animation="slide-left"].animate-out {
+  animation: slide-left 0.6s ease-in-out forwards;
+}
+
+.tri-stripe[data-navigate-animation="slide-down"].animate-out {
+  animation: slide-down 0.6s ease-in-out forwards;
+}
+
+.tri-stripe[data-navigate-animation="fade-out"].animate-out {
+  animation: fade-out 0.6s ease-in-out forwards;
+}
+
+.tri-stripe[data-navigate-animation="scale-shrink"].animate-out {
+  animation: scale-shrink 0.6s ease-in-out forwards;
+}
+
+/* Disable animation when data attribute is "none" */
+.tri-stripe[data-navigate-animation="none"] {
+  /* No animation */
+}
